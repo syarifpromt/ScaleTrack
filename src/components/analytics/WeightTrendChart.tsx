@@ -151,36 +151,110 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
     }
   };
 
+  // Custom Dot with Crosshair: Horizontal dashed line + Vertical dashed line (bounded from bottom up to dot, never exceeding line)
+  const renderCustomAreaDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    const isSelected = selectedPoint?.label === payload.label;
+
+    if (!isSelected) {
+      return (
+        <circle
+          key={`dot-${payload.label}`}
+          cx={cx}
+          cy={cy}
+          r={4}
+          fill="#10b981"
+          stroke="#ffffff"
+          strokeWidth={2}
+          style={{ outline: 'none' }}
+        />
+      );
+    }
+
+    // Chart bottom baseline where the X-axis is located (~280px)
+    const chartBottomY = 280;
+
+    return (
+      <g key={`dot-active-${payload.label}`} style={{ outline: 'none' }}>
+        {/* 1. Garis putus-putus Horizontal dari sumbu Y kiri ke titik kurva */}
+        <line
+          x1={25}
+          y1={cy}
+          x2={cx}
+          y2={cy}
+          stroke="#10b981"
+          strokeWidth={1.5}
+          strokeDasharray="4 4"
+        />
+
+        {/* 2. Garis putus-putus Vertikal: Dari dasar sumbu X (bawah) naik ke titik (cy), TIDAK MELEBIHI KURVA! */}
+        <line
+          x1={cx}
+          y1={cy}
+          x2={cx}
+          y2={chartBottomY}
+          stroke="#10b981"
+          strokeWidth={1.5}
+          strokeDasharray="4 4"
+        />
+
+        {/* 3. Titik Kurva Zoom Focus */}
+        <circle
+          cx={cx}
+          cy={cy}
+          r={12}
+          fill="#10b981"
+          fillOpacity={0.25}
+          className="animate-ping"
+        />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={7}
+          fill="#10b981"
+          stroke="#ffffff"
+          strokeWidth={2.5}
+        />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={3}
+          fill="#ffffff"
+        />
+      </g>
+    );
+  };
+
   return (
     <>
-      <div className="bg-white p-6 sm:p-7 rounded-2xl shadow-sm border border-gray-200 flex flex-col gap-6 relative overflow-hidden">
+      <div className="bg-white p-4 sm:p-7 rounded-2xl shadow-sm border border-gray-200 flex flex-col gap-5 sm:gap-6 relative overflow-hidden">
         {/* Header & Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
             <div className={cn(
-              "p-2.5 rounded-xl border transition-colors",
+              "p-2 sm:p-2.5 rounded-xl border transition-colors shrink-0",
               chartType === 'bar'
                 ? "bg-blue-50 text-blue-600 border-blue-100"
                 : "bg-emerald-50 text-emerald-600 border-emerald-100"
             )}>
               {chartType === 'bar' ? (
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3 className="w-4 h-4 sm:w-5 h-5" />
               ) : (
-                <TrendingUp className="w-5 h-5" />
+                <TrendingUp className="w-4 h-4 sm:w-5 h-5" />
               )}
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 font-sans">
+              <h2 className="text-sm sm:text-lg font-bold text-gray-900 font-sans">
                 {chartType === 'bar' ? 'Grafik Batang (Kategori Barang)' : 'Grafik Garis (Tren Total Volume)'}
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-[11px] sm:text-xs text-gray-500">
                 {chartType === 'bar' ? config.barSubtitle.replace(' (Klik bar untuk zoom)', '') : config.lineSubtitle.replace(' (Klik titik untuk zoom)', '')}
               </p>
             </div>
           </div>
 
           {/* Right Action Bar */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
             {/* Switcher: Grafik Batang vs Grafik Garis */}
             <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200">
               <button
@@ -189,7 +263,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   setSelectedPoint(null);
                 }}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
                   chartType === 'bar'
                     ? "bg-white text-blue-700 shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
@@ -204,7 +278,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   setSelectedPoint(null);
                 }}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
                   chartType === 'line'
                     ? "bg-white text-emerald-700 shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
@@ -219,21 +293,21 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
             <button
               onClick={() => setIsFullscreenZoom(true)}
               title="Perbesar Layar Grafik Penuh"
-              className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+              className="p-1.5 sm:p-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
             >
-              <Maximize2 className="w-4 h-4 text-gray-700" />
-              <span className="hidden md:inline">Perbesar</span>
+              <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700" />
+              <span className="hidden sm:inline">Perbesar</span>
             </button>
           </div>
         </div>
 
         {/* Chart Canvas */}
-        <div className="h-[320px] w-full cursor-pointer relative group select-none">
+        <div className="h-[260px] sm:h-[320px] w-full cursor-pointer relative select-none touch-pan-y">
           <ResponsiveContainer width="100%" height="100%">
             {chartType === 'bar' ? (
               <BarChart
                 data={config.data}
-                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 onClick={handleChartClick}
                 style={{ outline: 'none' }}
               >
@@ -242,18 +316,18 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   dataKey="label" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} 
-                  dy={8} 
+                  tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} 
+                  dy={6} 
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 11, fill: '#64748b' }} 
+                  tick={{ fontSize: 10, fill: '#64748b' }} 
                   domain={config.yDomain} 
                   unit={config.unit}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(37, 99, 235, 0.04)', radius: 8 }}
+                  cursor={{ fill: 'rgba(37, 99, 235, 0.04)', radius: 6 }}
                   formatter={(value: any, name: any) => [`${Number(value).toLocaleString('id-ID')} kg`, name]}
                   contentStyle={{
                     borderRadius: '12px',
@@ -264,14 +338,14 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   }}
                   labelStyle={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}
                 />
-                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px', fontWeight: 600 }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px', fontWeight: 600 }} />
                 
                 <Bar 
                   dataKey="beras" 
                   name="Beras" 
                   stackId="a" 
                   fill="#2563eb" 
-                  barSize={period === 'year' ? 18 : 34} 
+                  barSize={period === 'year' ? 14 : 28} 
                   style={{ outline: 'none' }}
                 >
                   {config.data.map((entry, idx) => {
@@ -292,7 +366,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   name="Daging & Protein" 
                   stackId="a" 
                   fill="#10b981" 
-                  barSize={period === 'year' ? 18 : 34} 
+                  barSize={period === 'year' ? 14 : 28} 
                   style={{ outline: 'none' }}
                 >
                   {config.data.map((entry, idx) => {
@@ -313,8 +387,8 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   name="Sembako Lainnya" 
                   stackId="a" 
                   fill="#8b5cf6" 
-                  radius={[6, 6, 0, 0]} 
-                  barSize={period === 'year' ? 18 : 34} 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={period === 'year' ? 14 : 28} 
                   style={{ outline: 'none' }}
                 >
                   {config.data.map((entry, idx) => {
@@ -334,7 +408,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
             ) : (
               <AreaChart
                 data={config.data}
-                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 onClick={handleChartClick}
                 style={{ outline: 'none' }}
               >
@@ -349,18 +423,18 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   dataKey="label" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} 
-                  dy={8} 
+                  tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} 
+                  dy={6} 
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 11, fill: '#64748b' }} 
+                  tick={{ fontSize: 10, fill: '#64748b' }} 
                   domain={config.yDomain} 
                   unit={config.unit}
                 />
                 <Tooltip
-                  cursor={{ stroke: '#10b981', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                  cursor={false}
                   formatter={(value: any) => [`${Number(value).toLocaleString('id-ID')} kg`, 'Total Berat']}
                   contentStyle={{
                     borderRadius: '12px',
@@ -371,7 +445,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   }}
                   labelStyle={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}
                 />
-                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px', fontWeight: 600 }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px', fontWeight: 600 }} />
                 
                 <Area
                   type="monotone"
@@ -381,8 +455,8 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorTotal)"
-                  dot={{ r: 5, fill: '#10b981', strokeWidth: 2, stroke: '#ffffff' }}
-                  activeDot={{ r: 8, strokeWidth: 2, stroke: '#059669' }}
+                  dot={renderCustomAreaDot}
+                  activeDot={false}
                 />
               </AreaChart>
             )}
@@ -391,20 +465,20 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
 
         {/* INTERACTIVE CLICK-TO-ZOOM DRILL-DOWN PANEL */}
         {selectedPoint && (
-          <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-blue-50/90 border border-blue-200 rounded-2xl p-5 shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-top-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-blue-200/70">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-blue-600 text-white shadow-xs">
-                  <Package className="w-4 h-4" />
+          <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-blue-50/90 border border-blue-200 rounded-2xl p-4 sm:p-5 shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-top-3">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-blue-200/70">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 sm:p-2 rounded-xl bg-blue-600 text-white shadow-xs shrink-0">
+                  <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Rincian Waktu</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-blue-700">Rincian Waktu</span>
                     <span className="text-xs font-black bg-blue-600 text-white px-2 py-0.5 rounded-md font-sans">
                       {selectedPoint.label}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5 line-clamp-1">
                     Komposisi bobot barang dan estimasi transaksi pada titik ini
                   </p>
                 </div>
@@ -412,69 +486,69 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
 
               <button
                 onClick={() => setSelectedPoint(null)}
-                className="self-end sm:self-auto flex items-center gap-1 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Tutup</span>
+                <span className="hidden sm:inline">Tutup</span>
               </button>
             </div>
 
             {/* Metrics Breakdown Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4">
               {/* Total Bobot */}
-              <div className="bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs flex flex-col justify-between">
-                <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold">
+              <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-blue-100 shadow-2xs flex flex-col justify-between">
+                <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-500 font-semibold">
                   <span>Total Bobot</span>
-                  <Package className="w-3.5 h-3.5 text-blue-600" />
+                  <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600" />
                 </div>
-                <div className="mt-2">
-                  <span className="text-xl sm:text-2xl font-black text-gray-900 font-sans tabular-nums">
+                <div className="mt-1 sm:mt-2">
+                  <span className="text-lg sm:text-2xl font-black text-gray-900 font-sans tabular-nums">
                     {selectedPoint.total.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs font-bold text-blue-600 ml-1">kg</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-blue-600 ml-1">kg</span>
                 </div>
               </div>
 
               {/* Beras */}
-              <div className="bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs flex flex-col justify-between">
-                <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold">
+              <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-blue-100 shadow-2xs flex flex-col justify-between">
+                <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-500 font-semibold">
                   <span>Beras</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                  <span className="w-2 h-2 rounded-full bg-blue-600" />
                 </div>
-                <div className="mt-2">
-                  <span className="text-xl sm:text-2xl font-black text-blue-700 font-sans tabular-nums">
+                <div className="mt-1 sm:mt-2">
+                  <span className="text-lg sm:text-2xl font-black text-blue-700 font-sans tabular-nums">
                     {selectedPoint.beras.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs font-bold text-gray-400 ml-1">
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-400 ml-1">
                     ({Math.round((selectedPoint.beras / selectedPoint.total) * 100)}%)
                   </span>
                 </div>
               </div>
 
               {/* Daging */}
-              <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs flex flex-col justify-between">
-                <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold">
-                  <span>Daging & Protein</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-emerald-100 shadow-2xs flex flex-col justify-between">
+                <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-500 font-semibold">
+                  <span>Daging</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 </div>
-                <div className="mt-2">
-                  <span className="text-xl sm:text-2xl font-black text-emerald-700 font-sans tabular-nums">
+                <div className="mt-1 sm:mt-2">
+                  <span className="text-lg sm:text-2xl font-black text-emerald-700 font-sans tabular-nums">
                     {selectedPoint.daging.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs font-bold text-gray-400 ml-1">
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-400 ml-1">
                     ({Math.round((selectedPoint.daging / selectedPoint.total) * 100)}%)
                   </span>
                 </div>
               </div>
 
               {/* Est. Omset */}
-              <div className="bg-white p-3.5 rounded-xl border border-purple-100 shadow-2xs flex flex-col justify-between">
-                <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold">
-                  <span>Est. Nilai Transaksi</span>
-                  <DollarSign className="w-3.5 h-3.5 text-purple-600" />
+              <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-purple-100 shadow-2xs flex flex-col justify-between">
+                <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-500 font-semibold">
+                  <span>Est. Omset</span>
+                  <DollarSign className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-600" />
                 </div>
-                <div className="mt-2">
-                  <span className="text-base sm:text-lg font-black text-purple-700 font-sans tabular-nums">
+                <div className="mt-1 sm:mt-2">
+                  <span className="text-xs sm:text-base font-black text-purple-700 font-sans tabular-nums truncate">
                     {formatRupiah(calculateEstimatedRevenue(selectedPoint))}
                   </span>
                 </div>
