@@ -29,7 +29,7 @@ export function Logo({ showStatus = false, compact = false }: LogoProps) {
             <span className="text-blue-600 ml-0.5">Track</span>
           </div>
           <span className="text-[10px] font-medium tracking-wide text-gray-400 leading-none mt-0.5">
-            by Kelompok 23
+            by Syarif Hidayatullah
           </span>
         </div>
       )}
