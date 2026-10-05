@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -146,7 +147,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
   const handleChartClick = (e: any) => {
     if (e && e.activePayload && e.activePayload.length > 0) {
       const clickedData = e.activePayload[0].payload as PeriodChartItem;
-      setSelectedPoint(clickedData);
+      setSelectedPoint(prev => (prev?.label === clickedData.label ? null : clickedData));
     }
   };
 
@@ -169,16 +170,11 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
               )}
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold text-gray-900 font-sans">
-                  {chartType === 'bar' ? 'Grafik Batang (Kategori Barang)' : 'Grafik Garis (Tren Total Volume)'}
-                </h2>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
-                  <ZoomIn className="w-3 h-3" /> Klik diagram untuk zoom in
-                </span>
-              </div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 font-sans">
+                {chartType === 'bar' ? 'Grafik Batang (Kategori Barang)' : 'Grafik Garis (Tren Total Volume)'}
+              </h2>
               <p className="text-xs text-gray-500">
-                {chartType === 'bar' ? config.barSubtitle : config.lineSubtitle}
+                {chartType === 'bar' ? config.barSubtitle.replace(' (Klik bar untuk zoom)', '') : config.lineSubtitle.replace(' (Klik titik untuk zoom)', '')}
               </p>
             </div>
           </div>
@@ -232,13 +228,14 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
         </div>
 
         {/* Chart Canvas */}
-        <div className="h-[320px] w-full cursor-pointer relative group">
+        <div className="h-[320px] w-full cursor-pointer relative group select-none">
           <ResponsiveContainer width="100%" height="100%">
             {chartType === 'bar' ? (
               <BarChart
                 data={config.data}
                 margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                 onClick={handleChartClick}
+                style={{ outline: 'none' }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis 
@@ -256,6 +253,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   unit={config.unit}
                 />
                 <Tooltip
+                  cursor={{ fill: 'rgba(37, 99, 235, 0.04)', radius: 8 }}
                   formatter={(value: any, name: any) => [`${Number(value).toLocaleString('id-ID')} kg`, name]}
                   contentStyle={{
                     borderRadius: '12px',
@@ -274,14 +272,42 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   stackId="a" 
                   fill="#2563eb" 
                   barSize={period === 'year' ? 18 : 34} 
-                />
+                  style={{ outline: 'none' }}
+                >
+                  {config.data.map((entry, idx) => {
+                    const isSelected = selectedPoint?.label === entry.label;
+                    const isAnySelected = selectedPoint !== null;
+                    return (
+                      <Cell
+                        key={`beras-${idx}`}
+                        fill="#2563eb"
+                        opacity={isAnySelected ? (isSelected ? 1.0 : 0.3) : 1.0}
+                        style={{ outline: 'none', transition: 'opacity 0.25s ease' }}
+                      />
+                    );
+                  })}
+                </Bar>
                 <Bar 
                   dataKey="daging" 
                   name="Daging & Protein" 
                   stackId="a" 
                   fill="#10b981" 
                   barSize={period === 'year' ? 18 : 34} 
-                />
+                  style={{ outline: 'none' }}
+                >
+                  {config.data.map((entry, idx) => {
+                    const isSelected = selectedPoint?.label === entry.label;
+                    const isAnySelected = selectedPoint !== null;
+                    return (
+                      <Cell
+                        key={`daging-${idx}`}
+                        fill="#10b981"
+                        opacity={isAnySelected ? (isSelected ? 1.0 : 0.3) : 1.0}
+                        style={{ outline: 'none', transition: 'opacity 0.25s ease' }}
+                      />
+                    );
+                  })}
+                </Bar>
                 <Bar 
                   dataKey="sembako" 
                   name="Sembako Lainnya" 
@@ -289,13 +315,28 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   fill="#8b5cf6" 
                   radius={[6, 6, 0, 0]} 
                   barSize={period === 'year' ? 18 : 34} 
-                />
+                  style={{ outline: 'none' }}
+                >
+                  {config.data.map((entry, idx) => {
+                    const isSelected = selectedPoint?.label === entry.label;
+                    const isAnySelected = selectedPoint !== null;
+                    return (
+                      <Cell
+                        key={`sembako-${idx}`}
+                        fill="#8b5cf6"
+                        opacity={isAnySelected ? (isSelected ? 1.0 : 0.3) : 1.0}
+                        style={{ outline: 'none', transition: 'opacity 0.25s ease' }}
+                      />
+                    );
+                  })}
+                </Bar>
               </BarChart>
             ) : (
               <AreaChart
                 data={config.data}
                 margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                 onClick={handleChartClick}
+                style={{ outline: 'none' }}
               >
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -319,6 +360,7 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                   unit={config.unit}
                 />
                 <Tooltip
+                  cursor={{ stroke: '#10b981', strokeWidth: 1.5, strokeDasharray: '4 4' }}
                   formatter={(value: any) => [`${Number(value).toLocaleString('id-ID')} kg`, 'Total Berat']}
                   contentStyle={{
                     borderRadius: '12px',
@@ -353,27 +395,27 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-blue-200/70">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-blue-600 text-white shadow-xs">
-                  <Sparkles className="w-4 h-4" />
+                  <Package className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Zoom In Detail</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Rincian Waktu</span>
                     <span className="text-xs font-black bg-blue-600 text-white px-2 py-0.5 rounded-md font-sans">
                       {selectedPoint.label}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 mt-0.5">
-                    Hasil perincian bobot dan estimasi penjualan pada titik waktu terpilih
+                    Komposisi bobot barang dan estimasi transaksi pada titik ini
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setSelectedPoint(null)}
-                className="self-end sm:self-auto flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-gray-900 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-gray-50 transition-colors cursor-pointer"
+                className="self-end sm:self-auto flex items-center gap-1 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Tutup Zoom</span>
+                <span>Tutup</span>
               </button>
             </div>
 

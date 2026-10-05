@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
-import { Globe, ZoomIn, X, Sparkles } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { TimePeriod } from '@/app/history/page';
 import { cn } from '@/lib/utils';
 
@@ -16,11 +16,13 @@ interface DistributionItem {
 const distributionByPeriod: Record<TimePeriod, {
   dominantName: string;
   dominantPercentage: number;
+  dominantWeight: number;
   items: DistributionItem[];
 }> = {
   today: {
-    dominantName: 'Beras',
+    dominantName: 'Beras Premium',
     dominantPercentage: 45.0,
+    dominantWeight: 83.1,
     items: [
       { name: 'Beras Premium', value: 83.1, percentage: 45, color: '#2563eb' },
       { name: 'Daging Sapi Segar', value: 55.4, percentage: 30, color: '#10B981' },
@@ -29,8 +31,9 @@ const distributionByPeriod: Record<TimePeriod, {
     ],
   },
   week: {
-    dominantName: 'Beras',
+    dominantName: 'Beras Premium',
     dominantPercentage: 48.7,
+    dominantWeight: 829.1,
     items: [
       { name: 'Beras Premium', value: 829.1, percentage: 49, color: '#2563eb' },
       { name: 'Daging Sapi Segar', value: 510.9, percentage: 30, color: '#10B981' },
@@ -39,8 +42,9 @@ const distributionByPeriod: Record<TimePeriod, {
     ],
   },
   month: {
-    dominantName: 'Beras',
+    dominantName: 'Beras Premium',
     dominantPercentage: 48.6,
+    dominantWeight: 3600.0,
     items: [
       { name: 'Beras Premium', value: 3600.0, percentage: 49, color: '#2563eb' },
       { name: 'Daging Sapi Segar', value: 2490.0, percentage: 33, color: '#10B981' },
@@ -49,8 +53,9 @@ const distributionByPeriod: Record<TimePeriod, {
     ],
   },
   year: {
-    dominantName: 'Beras',
+    dominantName: 'Beras Premium',
     dominantPercentage: 47.9,
+    dominantWeight: 42600.0,
     items: [
       { name: 'Beras Premium', value: 42600.0, percentage: 48, color: '#2563eb' },
       { name: 'Daging Sapi Segar', value: 28500.0, percentage: 32, color: '#10B981' },
@@ -60,24 +65,24 @@ const distributionByPeriod: Record<TimePeriod, {
   },
 };
 
-// Render enlarged active shape when clicked
+// Custom Sector with smooth scale pop-out on click
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
 
   return (
-    <g>
+    <g style={{ outline: 'none' }}>
       <Sector
         cx={cx}
         cy={cy}
-        innerRadius={innerRadius - 4}
-        outerRadius={outerRadius + 10}
+        innerRadius={innerRadius - 3}
+        outerRadius={outerRadius + 8}
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
         style={{
-          filter: 'drop-shadow(0px 6px 12px rgba(0, 0, 0, 0.2))',
-          transition: 'all 0.3s ease',
+          filter: 'drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.15))',
           cursor: 'pointer',
+          outline: 'none',
         }}
       />
     </g>
@@ -110,22 +115,12 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
             <h3 className="font-sans font-bold text-base text-gray-900">Distribusi Produk</h3>
           </div>
         </div>
-
-        {activeIndex !== null && (
-          <button
-            onClick={() => setActiveIndex(null)}
-            className="flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200 transition-colors cursor-pointer"
-          >
-            <X className="w-3 h-3" />
-            <span>Reset Zoom</span>
-          </button>
-        )}
       </div>
 
-      {/* Pie Chart Canvas with Click-to-Zoom */}
-      <div className="relative h-[220px] w-full flex-grow cursor-pointer">
+      {/* Pie Chart Canvas with Clean Click-to-Zoom */}
+      <div className="relative h-[220px] w-full flex-grow cursor-pointer select-none">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart style={{ outline: 'none' }}>
             <Pie
               data={current.items}
               cx="50%"
@@ -141,6 +136,7 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
               onClick={onPieClick}
               stroke="#ffffff"
               strokeWidth={2}
+              style={{ outline: 'none' }}
             >
               {current.items.map((entry, index) => (
                 <Cell 
@@ -158,30 +154,44 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center Dynamic Zoom Info */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-all">
+        {/* Center Dynamic Visual Readout */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
           {selectedItem ? (
-            <div className="text-center animate-in zoom-in-75 duration-200">
-              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider flex items-center justify-center gap-1">
-                <Sparkles className="w-3 h-3" /> ZOOM IN
+            <div className="flex flex-col items-center transition-all duration-300">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                KOMPOSISI
               </span>
-              <span className="font-bold text-base text-gray-900 leading-tight block max-w-[110px] truncate" title={selectedItem.name}>
+              <span className="font-bold text-sm text-gray-900 leading-snug line-clamp-1 max-w-[120px]">
                 {selectedItem.name}
               </span>
-              <span className="text-sm font-black text-blue-600">{selectedItem.percentage}%</span>
+              <span className="text-lg font-black text-blue-600 tabular-nums">
+                {selectedItem.percentage}%
+              </span>
+              <span className="text-[11px] font-semibold text-gray-500 tabular-nums">
+                {selectedItem.value.toLocaleString('id-ID')} kg
+              </span>
             </div>
           ) : (
-            <div className="text-center">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">DOMINAN</span>
-              <span className="font-bold text-lg text-blue-600 leading-tight block">{current.dominantName}</span>
-              <span className="text-xs font-semibold text-gray-600">{current.dominantPercentage}%</span>
+            <div className="flex flex-col items-center transition-all duration-300">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                DOMINAN
+              </span>
+              <span className="font-bold text-sm text-gray-900 leading-snug line-clamp-1 max-w-[120px]">
+                {current.dominantName}
+              </span>
+              <span className="text-lg font-black text-blue-600 tabular-nums">
+                {current.dominantPercentage}%
+              </span>
+              <span className="text-[11px] font-semibold text-gray-500 tabular-nums">
+                {current.dominantWeight.toLocaleString('id-ID')} kg
+              </span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Interactive Legend List (Clicking row also zooms into slice) */}
-      <div className="mt-4 flex flex-col gap-2">
+      {/* Interactive Legend List */}
+      <div className="mt-4 flex flex-col gap-1.5">
         {current.items.map((item, idx) => {
           const isSelected = activeIndex === idx;
           return (
@@ -191,22 +201,24 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
               className={cn(
                 "flex items-center justify-between text-xs sm:text-sm p-2 rounded-xl transition-all cursor-pointer text-left border",
                 isSelected
-                  ? "bg-blue-50/80 border-blue-300 shadow-2xs scale-[1.02]"
+                  ? "bg-blue-50/90 border-blue-300 shadow-2xs scale-[1.01]"
                   : "hover:bg-gray-50 border-transparent text-gray-700"
               )}
             >
               <div className="flex items-center gap-2">
                 <div 
-                  className="w-3 h-3 rounded-full transition-transform" 
+                  className="w-2.5 h-2.5 rounded-full transition-transform" 
                   style={{ backgroundColor: item.color, transform: isSelected ? 'scale(1.3)' : 'scale(1)' }} 
                 />
-                <span className="font-semibold truncate max-w-[130px]" title={item.name}>
+                <span className={cn("font-medium truncate max-w-[130px]", isSelected ? "font-bold text-blue-900" : "")} title={item.name}>
                   {item.name}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-right">
+              <div className="flex items-center gap-2 text-right">
                 <span className="text-gray-500 text-xs tabular-nums">{item.value.toLocaleString('id-ID')} kg</span>
-                <span className="font-sans font-bold text-gray-900 w-9 tabular-nums">{item.percentage}%</span>
+                <span className={cn("font-sans font-bold w-8 tabular-nums", isSelected ? "text-blue-700" : "text-gray-800")}>
+                  {item.percentage}%
+                </span>
               </div>
             </button>
           );

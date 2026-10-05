@@ -81,3 +81,18 @@
     @apply bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm;
   }
 }
+
+/* Recharts & SVG Focus outline fix */
+svg:focus,
+svg *:focus,
+path:focus,
+rect:focus,
+g:focus,
+.recharts-surface:focus,
+.recharts-pie-sector:focus,
+.recharts-bar-rectangle:focus,
+.recharts-area-area:focus,
+.recharts-curve:focus {
+  outline: none !important;
+}
+
