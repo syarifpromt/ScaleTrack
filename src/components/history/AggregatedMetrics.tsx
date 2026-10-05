@@ -5,11 +5,7 @@ import { Receipt, Package, DollarSign } from 'lucide-react';
 import { TimePeriod } from '@/app/history/page';
 
 function formatRupiah(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
 }
 
 const metricsByPeriod: Record<TimePeriod, {
@@ -125,7 +121,11 @@ export const AggregatedMetrics = ({ period = 'today' }: AggregatedMetricsProps) 
           </div>
         </div>
         <div className="my-3.5">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-emerald-600 font-sans tabular-nums truncate" title={formatRupiah(current.totalOmset)}>
+          <div 
+            suppressHydrationWarning 
+            className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-emerald-600 font-sans tabular-nums truncate" 
+            title={formatRupiah(current.totalOmset)}
+          >
             {formatRupiah(current.totalOmset)}
           </div>
           <p className="text-xs text-emerald-700 mt-1.5 font-medium">

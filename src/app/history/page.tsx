@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { History, BarChart3, Table as TableIcon, Calendar, Download, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SearchBar from '@/components/history/SearchBar';
@@ -15,6 +15,25 @@ export type TimePeriod = 'today' | 'week' | 'month' | 'year';
 export default function HistoryAndAnalyticsPage() {
   const [activeTab, setActiveTab] = useState<'analytics' | 'table'>('analytics');
   const [period, setPeriod] = useState<TimePeriod>('today');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-[1600px] mx-auto pb-16">
+        <div className="h-24 bg-white rounded-2xl border border-gray-200/80 shadow-xs animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="h-36 bg-white rounded-2xl border border-gray-200/80 shadow-xs animate-pulse" />
+          <div className="h-36 bg-white rounded-2xl border border-gray-200/80 shadow-xs animate-pulse" />
+          <div className="h-36 bg-white rounded-2xl border border-gray-200/80 shadow-xs animate-pulse" />
+        </div>
+        <div className="h-96 bg-white rounded-2xl border border-gray-200/80 shadow-xs animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-[1600px] mx-auto pb-16">

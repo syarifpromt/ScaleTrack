@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import { Globe } from 'lucide-react';
 import { TimePeriod } from '@/app/history/page';
 import { cn } from '@/lib/utils';
@@ -65,43 +65,103 @@ const distributionByPeriod: Record<TimePeriod, {
   },
 };
 
-// Custom Sector with smooth scale pop-out on click
-const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-
-  return (
-    <g style={{ outline: 'none' }}>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius - 3}
-        outerRadius={outerRadius + 8}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        style={{
-          filter: 'drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.15))',
-          cursor: 'pointer',
-          outline: 'none',
-        }}
-      />
-    </g>
-  );
-};
-
 interface ProductDistributionProps {
   period?: TimePeriod;
 }
 
 export function ProductDistribution({ period = 'today' }: ProductDistributionProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
+  const [hoveredName, setHoveredName] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const current = distributionByPeriod[period] || distributionByPeriod.today;
 
-  const onPieClick = (_: any, index: number) => {
-    setActiveIndex(activeIndex === index ? null : index);
+  // Trigger clockwise circular sweep animation on mount and whenever period changes
+  useEffect(() => {
+    setIsInitialLoad(true);
+    setSelectedName(null);
+    setHoveredName(null);
+
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false);
+    }, 950);
+
+    return () => clearTimeout(timer);
+  }, [period]);
+
+  const handleToggle = (name?: string) => {
+    if (!name) return;
+    setSelectedName(prev => (prev === name ? null : name));
   };
 
-  const selectedItem = activeIndex !== null ? current.items[activeIndex] : null;
+  // Only trigger hover on genuine desktop mouse pointers, never on touchscreens
+  const handleMouseEnter = (name: string) => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      setHoveredName(name);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      setHoveredName(null);
+    }
+  };
+
+  // Active item prioritizes hovered item (desktop preview), otherwise locked selected item
+  const activeName = hoveredName || selectedName;
+
+  const selectedItem = activeName 
+    ? current.items.find(item => item.name === activeName) || null
+    : null;
+
+  // Custom Sector shape renderer: Physically enlarged + Spring GPU zoom animation
+  const renderSliceShape = (props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, index, name, payload } = props;
+    const itemName = name || payload?.name || current.items[index]?.name;
+    const isSelected = activeName === itemName;
+
+    // Calculate radial offset vector (pushes slice outward gently by 3px in its mid angle direction)
+    const RADIAN = Math.PI / 180;
+    const midAngle = (startAngle + endAngle) / 2;
+    const offsetX = isSelected ? Math.cos(-midAngle * RADIAN) * 3 : 0;
+    const offsetY = isSelected ? Math.sin(-midAngle * RADIAN) * 3 : 0;
+
+    return (
+      <g
+        className={isSelected ? "donut-slice-active" : "donut-slice-idle"}
+        onMouseEnter={() => handleMouseEnter(itemName)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setHoveredName(null);
+          handleToggle(itemName);
+        }}
+        style={{
+          outline: 'none',
+          cursor: 'pointer',
+          pointerEvents: 'all',
+          ['--slice-cx' as any]: `${cx}px`,
+          ['--slice-cy' as any]: `${cy}px`,
+          ['--offset-x' as any]: `${offsetX.toFixed(2)}px`,
+          ['--offset-y' as any]: `${offsetY.toFixed(2)}px`,
+          transformOrigin: `${cx}px ${cy}px`,
+          transformBox: 'view-box',
+          filter: isSelected ? 'drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.18))' : 'none',
+        }}
+      >
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={isSelected ? innerRadius - 1 : innerRadius}
+          outerRadius={isSelected ? outerRadius + 4 : outerRadius}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          stroke="#ffffff"
+          strokeWidth={isSelected ? 2.5 : 2}
+          style={{ outline: 'none', pointerEvents: 'all', cursor: 'pointer' }}
+        />
+      </g>
+    );
+  };
 
   return (
     <div className="card bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col h-full relative">
@@ -118,71 +178,79 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
       </div>
 
       {/* Pie Chart Canvas with Clean Click-to-Zoom */}
-      <div className="relative h-[220px] w-full flex-grow cursor-pointer select-none">
+      <div 
+        className="relative h-[220px] w-full flex-grow cursor-pointer select-none touch-manipulation flex items-center justify-center"
+        onMouseLeave={handleMouseLeave}
+      >
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart style={{ outline: 'none' }}>
+          <PieChart style={{ outline: 'none' }} onMouseLeave={handleMouseLeave}>
             <Pie
+              key={`pie-${period}`}
               data={current.items}
               cx="50%"
               cy="50%"
+              startAngle={90}
+              endAngle={-270}
               innerRadius={58}
               outerRadius={86}
               paddingAngle={3}
               dataKey="value"
-              {...({
-                activeIndex: activeIndex !== null ? activeIndex : undefined,
-                activeShape: renderActiveShape,
-              } as any)}
-              onClick={onPieClick}
-              stroke="#ffffff"
-              strokeWidth={2}
-              style={{ outline: 'none' }}
+              nameKey="name"
+              shape={renderSliceShape}
+              onMouseEnter={(entry: any, idx: number) => {
+                const targetName = entry?.name || current.items[idx]?.name;
+                if (targetName) handleMouseEnter(targetName);
+              }}
+              isAnimationActive={isInitialLoad}
+              animationBegin={0}
+              animationDuration={850}
+              animationEasing="ease"
+              onAnimationEnd={() => setIsInitialLoad(false)}
+              style={{ outline: 'none', cursor: 'pointer' }}
             >
               {current.items.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={entry.color}
-                  className="transition-all duration-300 hover:opacity-90"
-                  style={{ outline: 'none' }}
+                  style={{ outline: 'none', cursor: 'pointer', pointerEvents: 'all' }}
                 />
               ))}
             </Pie>
-            <Tooltip 
-              formatter={(value: any) => [`${Number(value).toLocaleString('id-ID')} kg`, 'Berat']}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}
-            />
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center Dynamic Visual Readout */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+        {/* Center Dynamic Visual Readout - Smooth Reveal after Sweep */}
+        <div className={cn(
+          "absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center px-2",
+          isInitialLoad && "center-smooth-reveal"
+        )}>
           {selectedItem ? (
-            <div className="flex flex-col items-center transition-all duration-300">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            <div className="flex flex-col items-center justify-center transition-all duration-300">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">
                 KOMPOSISI
               </span>
-              <span className="font-bold text-sm text-gray-900 leading-snug line-clamp-1 max-w-[120px]">
+              <span className="font-bold text-xs text-gray-800 leading-tight truncate max-w-[104px]" title={selectedItem.name}>
                 {selectedItem.name}
               </span>
-              <span className="text-lg font-black text-blue-600 tabular-nums">
+              <span className="text-2xl font-black text-blue-600 tracking-tight leading-none my-1 tabular-nums">
                 {selectedItem.percentage}%
               </span>
-              <span className="text-[11px] font-semibold text-gray-500 tabular-nums">
+              <span className="text-[11px] font-semibold text-gray-500 tabular-nums leading-none">
                 {selectedItem.value.toLocaleString('id-ID')} kg
               </span>
             </div>
           ) : (
-            <div className="flex flex-col items-center transition-all duration-300">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            <div className="flex flex-col items-center justify-center transition-all duration-300">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">
                 DOMINAN
               </span>
-              <span className="font-bold text-sm text-gray-900 leading-snug line-clamp-1 max-w-[120px]">
+              <span className="font-bold text-xs text-gray-800 leading-tight truncate max-w-[104px]" title={current.dominantName}>
                 {current.dominantName}
               </span>
-              <span className="text-lg font-black text-blue-600 tabular-nums">
+              <span className="text-2xl font-black text-blue-600 tracking-tight leading-none my-1 tabular-nums">
                 {current.dominantPercentage}%
               </span>
-              <span className="text-[11px] font-semibold text-gray-500 tabular-nums">
+              <span className="text-[11px] font-semibold text-gray-500 tabular-nums leading-none">
                 {current.dominantWeight.toLocaleString('id-ID')} kg
               </span>
             </div>
@@ -193,30 +261,34 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
       {/* Interactive Legend List */}
       <div className="mt-4 flex flex-col gap-1.5">
         {current.items.map((item, idx) => {
-          const isSelected = activeIndex === idx;
+          const isSelected = selectedName === item.name;
           return (
             <button
               key={idx}
-              onClick={() => setActiveIndex(isSelected ? null : idx)}
+              onClick={() => handleToggle(item.name)}
               className={cn(
-                "flex items-center justify-between text-xs sm:text-sm p-2 rounded-xl transition-all cursor-pointer text-left border",
+                "flex items-center justify-between text-xs sm:text-sm p-2.5 rounded-xl transition-all cursor-pointer text-left border",
                 isSelected
                   ? "bg-blue-50/90 border-blue-300 shadow-2xs scale-[1.01]"
                   : "hover:bg-gray-50 border-transparent text-gray-700"
               )}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div 
-                  className="w-2.5 h-2.5 rounded-full transition-transform" 
-                  style={{ backgroundColor: item.color, transform: isSelected ? 'scale(1.3)' : 'scale(1)' }} 
+                  className="w-3 h-3 rounded-full transition-transform" 
+                  style={{ 
+                    backgroundColor: item.color, 
+                    transform: isSelected ? 'scale(1.3)' : 'scale(1)',
+                    boxShadow: isSelected ? `0 0 8px ${item.color}` : 'none',
+                  }} 
                 />
                 <span className={cn("font-medium truncate max-w-[130px]", isSelected ? "font-bold text-blue-900" : "")} title={item.name}>
                   {item.name}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-right">
+              <div className="flex items-center gap-2.5 text-right">
                 <span className="text-gray-500 text-xs tabular-nums">{item.value.toLocaleString('id-ID')} kg</span>
-                <span className={cn("font-sans font-bold w-8 tabular-nums", isSelected ? "text-blue-700" : "text-gray-800")}>
+                <span className={cn("font-sans font-bold w-8 tabular-nums", isSelected ? "text-blue-700 font-black text-sm" : "text-gray-800")}>
                   {item.percentage}%
                 </span>
               </div>

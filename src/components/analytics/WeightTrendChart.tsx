@@ -121,11 +121,7 @@ const chartConfigByPeriod: Record<TimePeriod, PeriodChartConfig> = {
 };
 
 function formatRupiah(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
 }
 
 interface WeightTrendChartProps {
@@ -350,13 +346,13 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                 >
                   {config.data.map((entry, idx) => {
                     const isSelected = selectedPoint?.label === entry.label;
-                    const isAnySelected = selectedPoint !== null;
                     return (
                       <Cell
                         key={`beras-${idx}`}
                         fill="#2563eb"
-                        opacity={isAnySelected ? (isSelected ? 1.0 : 0.3) : 1.0}
-                        style={{ outline: 'none', transition: 'opacity 0.25s ease' }}
+                        stroke={isSelected ? '#1e3a8a' : 'none'}
+                        strokeWidth={isSelected ? 2 : 0}
+                        style={{ outline: 'none' }}
                       />
                     );
                   })}
@@ -371,13 +367,13 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                 >
                   {config.data.map((entry, idx) => {
                     const isSelected = selectedPoint?.label === entry.label;
-                    const isAnySelected = selectedPoint !== null;
                     return (
                       <Cell
                         key={`daging-${idx}`}
                         fill="#10b981"
-                        opacity={isAnySelected ? (isSelected ? 1.0 : 0.3) : 1.0}
-                        style={{ outline: 'none', transition: 'opacity 0.25s ease' }}
+                        stroke={isSelected ? '#065f46' : 'none'}
+                        strokeWidth={isSelected ? 2 : 0}
+                        style={{ outline: 'none' }}
                       />
                     );
                   })}
@@ -393,13 +389,13 @@ export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
                 >
                   {config.data.map((entry, idx) => {
                     const isSelected = selectedPoint?.label === entry.label;
-                    const isAnySelected = selectedPoint !== null;
                     return (
                       <Cell
                         key={`sembako-${idx}`}
                         fill="#8b5cf6"
-                        opacity={isAnySelected ? (isSelected ? 1.0 : 0.3) : 1.0}
-                        style={{ outline: 'none', transition: 'opacity 0.25s ease' }}
+                        stroke={isSelected ? '#5b21b6' : 'none'}
+                        strokeWidth={isSelected ? 2 : 0}
+                        style={{ outline: 'none' }}
                       />
                     );
                   })}

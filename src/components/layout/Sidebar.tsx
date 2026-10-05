@@ -25,7 +25,7 @@ export function Sidebar() {
       
       {/* Quick Navigation Links */}
       <div className="px-4 py-4">
-        <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
+        <div suppressHydrationWarning className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
           Menu Navigasi
         </div>
         <nav className="space-y-1">
