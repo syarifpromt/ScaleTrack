@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'on-error-container': '#93000a', 'outline': '#737686', 'surface-tint': '#0053db', 'on-tertiary-fixed-variant': '#005236', 'surface-container-high': '#dce9ff', 'on-surface': '#0b1c30', 'secondary': '#565e74', 'tertiary': '#006242', 'on-primary': '#ffffff', 'surface-container-highest': '#d3e4fe', 'on-secondary-fixed-variant': '#3f465c', 'on-secondary-fixed': '#131b2e', 'primary': '#004ac6', 'secondary-fixed': '#dae2fd', 'surface-container': '#e5eeff', 'primary-container': '#2563eb', 'surface-container-low': '#eff4ff', 'inverse-surface': '#213145', 'tertiary-fixed': '#6ffbbe', 'secondary-container': '#dae2fd', 'tertiary-fixed-dim': '#4edea3', 'background': '#f8f9ff', 'on-tertiary': '#ffffff', 'primary-fixed-dim': '#b4c5ff', 'on-secondary': '#ffffff', 'surface-dim': '#cbdbf5', 'on-primary-container': '#eeefff', 'on-primary-fixed': '#00174b', 'tertiary-container': '#007d55', 'error': '#ba1a1a', 'on-tertiary-fixed': '#002113', 'surface-variant': '#d3e4fe', 'on-surface-variant': '#434655', 'on-tertiary-container': '#bdffdb', 'surface-container-lowest': '#ffffff', 'on-error': '#ffffff', 'inverse-primary': '#b4c5ff', 'secondary-fixed-dim': '#bec6e0', 'on-secondary-container': '#5c647a', 'primary-fixed': '#dbe1ff', 'error-container': '#ffdad6', 'surface-bright': '#f8f9ff', 'on-primary-fixed-variant': '#003ea8', 'on-background': '#0b1c30', 'inverse-on-surface': '#eaf1ff', 'surface': '#f8f9ff', 'outline-variant': '#c3c6d7' }, 'borderRadius': { 'DEFAULT': '0.125rem', 'lg': '0.25rem', 'xl': '0.5rem', 'full': '0.75rem' }, 'spacing': { 'margin-lg': '2rem', 'space-xl': '2rem', 'gutter-lg': '1.5rem', 'space-lg': '1.25rem', 'space-sm': '0.5rem', 'space-xs': '0.25rem', 'space-md': '0.75rem', 'margin-md': '1.5rem', 'gutter': '1rem', 'margin': '1rem' }, 'fontFamily': { 'display-weight-md': ['JetBrains Mono'], 'headline-lg': ['Space Grotesk'], 'body-sm': ['Inter'], 'display-weight-lg-mobile': ['JetBrains Mono'], 'display-weight-lg': ['JetBrains Mono'], 'body-md': ['Inter'], 'headline-sm': ['Space Grotesk'], 'headline-md': ['Space Grotesk'], 'mono-label-lg': ['JetBrains Mono'], 'body-lg': ['Inter'], 'mono-label-sm': ['JetBrains Mono'] }, 'fontSize': { 'display-weight-md': ['36px', { 'lineHeight': '44px', 'letterSpacing': '-0.02em', 'fontWeight': '600' }], 'headline-lg': ['28px', { 'lineHeight': '36px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'body-sm': ['12px', { 'lineHeight': '16px', 'fontWeight': '400' }], 'display-weight-lg-mobile': ['36px', { 'lineHeight': '44px', 'letterSpacing': '-0.03em', 'fontWeight': '700' }], 'display-weight-lg': ['56px', { 'lineHeight': '64px', 'letterSpacing': '-0.04em', 'fontWeight': '700' }], 'body-md': ['14px', { 'lineHeight': '20px', 'fontWeight': '400' }], 'headline-sm': ['18px', { 'lineHeight': '24px', 'fontWeight': '600' }], 'headline-md': ['22px', { 'lineHeight': '28px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'mono-label-lg': ['14px', { 'lineHeight': '18px', 'letterSpacing': '0.06em', 'fontWeight': '600' }], 'body-lg': ['16px', { 'lineHeight': '24px', 'fontWeight': '400' }], 'mono-label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.08em', 'fontWeight': '500' }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between p-space-lg"><div class="flex flex-col gap-space-lg"><div class="flex items-center gap-space-md px-space-xs"><img alt="ScaleTrack Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Vt5PUGbaIV5aT5zgcN2m1s9ksteFYeHK-LC6zdONO3xdoUeJGtTtamv2jtfTufkUeUaxL-mopL5WQTZp0IalQBISG_WUC-R8CXzsF58wYagc07-Xz9cIKx63SF4NevCivU8gLPJmS-bBZ2X74NdEeN_QfgYnEdvfz6u4-v_CWD5hlxTgLr9D5frCKFG2aquMgclboscreb1VPf26auchMtw3tJqm-fNNg0iwMhCVvdxX1CtG9fxkXOHDs"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">ScaleTrack</span><span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase">Telemetry v2.4</span></div></div><div class="p-space-sm bg-surface-container rounded-xl flex items-center justify-between shadow-[0_1px_3px_rgba(15,23,42,0.04)]"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span><span class="font-mono-label-sm text-mono-label-sm text-tertiary font-semibold uppercase">SCALE-001</span></div><span class="font-body-sm text-body-sm text-on-surface-variant font-medium">Online</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_1px_3px_rgba(15,23,42,0.08)]"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="dashboard" href="#"><span class="material-symbols-outlined text-xl">dashboard</span><span>Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="weighing-station" href="#"><span class="material-symbols-outlined text-xl">scale</span><span>Weighing Station</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="history-logs" href="#"><span class="material-symbols-outlined text-xl">receipt_long</span><span>History &amp; Logs</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="analytics-statistics" href="#"><span class="material-symbols-outlined text-xl">monitoring</span><span>Analytics &amp; Statistics</span></a></nav></div><div class="flex flex-col gap-space-md pt-space-md bg-surface-container-low"><div class="p-space-sm bg-surface-container-lowest rounded-xl flex flex-col gap-space-xs shadow-[0_1px_3px_rgba(15,23,42,0.04)]"><div class="flex items-center justify-between text-on-surface-variant font-mono-label-sm text-mono-label-sm"><span>CHANNEL</span><span class="text-primary font-bold">WIFI-IND-04</span></div><div class="flex items-center justify-between text-on-surface-variant font-mono-label-sm text-mono-label-sm"><span>RATE</span><span class="font-medium">100 Hz Live</span></div></div><div class="flex items-center justify-between px-space-xs font-mono-label-sm text-mono-label-sm text-secondary"><span>ST-OS v4.19</span><span>SYS OPTIMAL</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs rounded-lg"><span class="material-symbols-outlined text-primary text-xl">devices</span><select class="bg-transparent font-mono-label-sm text-mono-label-sm text-on-surface focus:outline-none cursor-pointer"><option>SCALE-001 (Bay A - Packout)</option><option>SCALE-002 (Bay B - Chemical)</option><option>SCALE-003 (Bay C - Bulk Dry)</option></select></div><div class="flex items-center gap-space-xs px-space-sm py-space-xs bg-surface-container rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span><span class="font-mono-label-sm text-mono-label-sm text-on-surface-variant">24ms latency</span></div></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-space-xs bg-surface-container-lowest hover:bg-surface-container-high text-on-surface px-space-md py-space-xs rounded-lg font-mono-label-sm text-mono-label-sm shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-colors active:scale-95" type="button"><span class="material-symbols-outlined text-lg text-primary">exposure_zero</span><span>TARE (T)</span></button><div class="flex items-center gap-space-xs text-on-surface-variant"><button class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span></button><button class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-xl">tune</span></button></div><div class="flex items-center gap-space-sm pl-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-[0_1px_3px_rgba(15,23,42,0.08)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfYZZ27M0qzgYjm-mumSr6nesx9vr88lx0vYsDbajLbFkHxsSn7nLGg3zAC2qcCHSIQsie6B9h7xD1zPqg4dPcc9Vh1tQ6opltLcgtGT-T5V55HMbAr4XYq1JrgPnHv6rwcg13bdBCaCt1Msfy8cARoWQpDtNXlXvQhXGvSNbivQHMKTYVJOjGiNNelMJM3h5Ee51hIk3BwGAwossYTG3lic85a8SggNFKlaKjMCXzTrAQdSyqvx2l"/><div class="flex flex-col text-left"><span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">L. Vance</span><span class="font-mono-label-sm text-mono-label-sm text-secondary leading-none">QA Lead</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-lg py-margin-lg"><div class="flex flex-col w-full gap-space-lg">
+<!-- Top Bar: Context, Mode, and Time Filter Control -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="font-mono-label-sm text-mono-label-sm text-primary uppercase font-bold tracking-wider">TELEMETRY ANALYTICS // PRD SEC 14-24</span>
+<span class="h-1.5 w-1.5 rounded-full bg-outline-variant"></span>
+<span class="flex items-center gap-1 font-mono-label-sm text-mono-label-sm text-tertiary font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+          REALTIME ENGINE ACTIVE
+        </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Statistik &amp; Analitik Penimbangan</h1>
+</div>
+<div class="flex items-center flex-wrap gap-space-sm">
+<!-- Period Selector Segmented Switcher -->
+<div class="flex items-center p-1 bg-surface-container-low rounded-lg shadow-inner gap-0.5" id="period-switcher">
+<button class="px-space-md py-space-xs rounded-lg font-mono-label-sm text-mono-label-sm transition-all duration-150 text-on-surface-variant hover:text-on-surface" data-period="today" type="button">
+          Hari Ini
+        </button>
+<button class="px-space-md py-space-xs rounded-lg font-mono-label-sm text-mono-label-sm transition-all duration-150 bg-surface-container-lowest text-primary font-bold shadow-sm" data-period="7d" type="button">
+          7 Hari Terakhir
+        </button>
+<button class="px-space-md py-space-xs rounded-lg font-mono-label-sm text-mono-label-sm transition-all duration-150 text-on-surface-variant hover:text-on-surface" data-period="30d" type="button">
+          30 Hari
+        </button>
+<button class="px-space-md py-space-xs rounded-lg font-mono-label-sm text-mono-label-sm transition-all duration-150 text-on-surface-variant hover:text-on-surface flex items-center gap-1" data-period="custom" type="button">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span>Kustom</span>
+</button>
+</div>
+<!-- Export / Print Trigger -->
+<button class="flex items-center gap-space-xs px-space-md py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-mono-label-sm text-mono-label-sm shadow-sm transition-all active:scale-95" type="button">
+<span class="material-symbols-outlined text-base">ios_share</span>
+<span>EXPORT CSV/PDF</span>
+</button>
+</div>
+</div>
+<!-- Key Metrics Row: 4 KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-lg">
+<!-- KPI 1: Total Berat Tertimbang -->
+<div class="flex flex-col justify-between p-space-lg bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-surface-container rounded-full opacity-40 group-hover:scale-110 transition-transform"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">TOTAL BERAT TERTIMBANG</span>
+<span class="font-display-weight-md text-display-weight-md text-on-surface tracking-tight mt-1">1,842.50<span class="font-mono-label-lg text-mono-label-lg text-secondary ml-1">kg</span></span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shadow-xs">
+<span class="material-symbols-outlined text-2xl">scale</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs mt-space-md pt-space-sm relative z-10">
+<span class="inline-flex items-center text-tertiary font-mono-label-sm text-mono-label-sm font-semibold bg-tertiary-fixed/30 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-sm">trending_up</span>+8.4%
+        </span>
+<span class="font-body-sm text-body-sm text-secondary">vs. periode sebelumnya</span>
+</div>
+</div>
+<!-- KPI 2: Total Siklus Penimbangan -->
+<div class="flex flex-col justify-between p-space-lg bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-surface-container-high rounded-full opacity-30 group-hover:scale-110 transition-transform"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">TOTAL SIKLUS PENIMBANGAN</span>
+<span class="font-display-weight-md text-display-weight-md text-on-surface tracking-tight mt-1">1,480<span class="font-mono-label-lg text-mono-label-lg text-secondary ml-1">kali</span></span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shadow-xs">
+<span class="material-symbols-outlined text-2xl">autorenew</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs mt-space-md pt-space-sm relative z-10">
+<span class="inline-flex items-center text-tertiary font-mono-label-sm text-mono-label-sm font-semibold bg-tertiary-fixed/30 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-sm">check_circle</span>99.8%
+        </span>
+<span class="font-body-sm text-body-sm text-secondary">sukses tanpa interupsi</span>
+</div>
+</div>
+<!-- KPI 3: Rata-rata Berat per Siklus -->
+<div class="flex flex-col justify-between p-space-lg bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-surface-container-high rounded-full opacity-30 group-hover:scale-110 transition-transform"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">RATA-RATA BERAT / SIKLUS</span>
+<span class="font-display-weight-md text-display-weight-md text-on-surface tracking-tight mt-1">1.245<span class="font-mono-label-lg text-mono-label-lg text-secondary ml-1">kg</span></span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shadow-xs">
+<span class="material-symbols-outlined text-2xl">functions</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs mt-space-md pt-space-sm relative z-10">
+<span class="inline-flex items-center text-on-surface-variant font-mono-label-sm text-mono-label-sm bg-surface-container px-1.5 py-0.5 rounded">
+          σ = 0.012 kg
+        </span>
+<span class="font-body-sm text-body-sm text-secondary">standar deviasi stabil</span>
+</div>
+</div>
+<!-- KPI 4: Akurasi & Toleransi -->
+<div class="flex flex-col justify-between p-space-lg bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-tertiary-fixed/20 rounded-full opacity-40 group-hover:scale-110 transition-transform"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">AKURASI TOLERANSI</span>
+<span class="font-display-weight-md text-display-weight-md text-tertiary tracking-tight mt-1">98.7<span class="font-mono-label-lg text-mono-label-lg text-secondary ml-0.5">%</span></span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-tertiary-container/15 flex items-center justify-center text-tertiary shadow-xs">
+<span class="material-symbols-outlined text-2xl">verified</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs mt-space-md pt-space-sm relative z-10">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-body-sm text-body-sm text-tertiary font-medium">Dalam ambang deviasi (±0.5%)</span>
+</div>
+</div>
+</div>
+<!-- Main Section: Big Telemetry Trend Chart -->
+<div class="flex flex-col bg-surface-container-lowest p-space-lg rounded-xl shadow-sm gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm pb-space-sm">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface">Volume Berat per Hari / Siklus</h2>
+<span class="px-2 py-0.5 rounded bg-surface-container font-mono-label-sm text-mono-label-sm text-primary font-bold">100 Hz Sync</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Breakdown akumulasi throughput menurut kategori komoditas batch</p>
+</div>
+<!-- Product Legend and Chart View Toggle -->
+<div class="flex items-center flex-wrap gap-space-md">
+<div class="flex items-center gap-space-md">
+<span class="flex items-center gap-1.5 font-mono-label-sm text-mono-label-sm text-on-surface">
+<span class="w-3 h-3 rounded-sm bg-primary inline-block"></span>
+            Arabica
+          </span>
+<span class="flex items-center gap-1.5 font-mono-label-sm text-mono-label-sm text-on-surface">
+<span class="w-3 h-3 rounded-sm bg-tertiary-container inline-block"></span>
+            Robusta
+          </span>
+<span class="flex items-center gap-1.5 font-mono-label-sm text-mono-label-sm text-on-surface">
+<span class="w-3 h-3 rounded-sm bg-secondary inline-block"></span>
+            Cokelat
+          </span>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="px-2.5 py-1 bg-surface-container-lowest rounded text-primary font-mono-label-sm text-mono-label-sm shadow-xs font-semibold" type="button">Tumpuk (Stack)</button>
+<button class="px-2.5 py-1 text-secondary hover:text-on-surface font-mono-label-sm text-mono-label-sm" type="button">Trend Line</button>
+</div>
+</div>
+</div>
+<!-- Interactive Styled SVG Chart -->
+<div class="relative w-full h-72 md:h-80 bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between overflow-hidden">
+<!-- Background Guide Lines -->
+<div class="absolute inset-x-space-md top-space-md bottom-10 flex flex-col justify-between pointer-events-none opacity-40">
+<div class="w-full h-px bg-outline-variant/30 flex items-center justify-end"><span class="font-mono-label-sm text-[10px] text-secondary -mt-3">400 kg</span></div>
+<div class="w-full h-px bg-outline-variant/30 flex items-center justify-end"><span class="font-mono-label-sm text-[10px] text-secondary -mt-3">300 kg</span></div>
+<div class="w-full h-px bg-outline-variant/30 flex items-center justify-end"><span class="font-mono-label-sm text-[10px] text-secondary -mt-3">200 kg</span></div>
+<div class="w-full h-px bg-outline-variant/30 flex items-center justify-end"><span class="font-mono-label-sm text-[10px] text-secondary -mt-3">100 kg</span></div>
+<div class="w-full h-px bg-outline-variant/60 flex items-center justify-end"><span class="font-mono-label-sm text-[10px] text-secondary -mt-3">0 kg</span></div>
+</div>
+<!-- Bars Container: 7 Days (Senin - Minggu) -->
+<div class="relative z-10 h-full flex items-end justify-between px-2 pt-6 pb-2 gap-2 sm:gap-4">
+<!-- Day 1: Sen -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 18%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 32%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 25%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-secondary mt-2 group-hover:text-primary group-hover:font-bold">SEN</span>
+</div>
+<!-- Day 2: Sel -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 22%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 38%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 28%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-secondary mt-2 group-hover:text-primary group-hover:font-bold">SEL</span>
+</div>
+<!-- Day 3: Rab -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 15%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 30%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 42%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-secondary mt-2 group-hover:text-primary group-hover:font-bold">RAB</span>
+</div>
+<!-- Day 4: Kam (Peak) -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer relative">
+<!-- Active Tooltip floating for demonstration -->
+<div class="absolute -top-4 opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface px-2.5 py-1.5 rounded-lg shadow-xl text-center pointer-events-none z-30 whitespace-nowrap">
+<p class="font-mono-label-sm text-[11px] font-bold text-tertiary-fixed">Kamis: 348.2 kg</p>
+<p class="font-mono-label-sm text-[10px] text-surface-container-high">Arabica 165kg • Robusta 128kg • Cokelat 55kg</p>
+</div>
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 16%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 36%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 44%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-primary font-bold mt-2">KAM</span>
+</div>
+<!-- Day 5: Jum -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 20%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 31%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 35%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-secondary mt-2 group-hover:text-primary group-hover:font-bold">JUM</span>
+</div>
+<!-- Day 6: Sab -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 12%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 25%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 24%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-secondary mt-2 group-hover:text-primary group-hover:font-bold">SAB</span>
+</div>
+<!-- Day 7: Min -->
+<div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+<div class="w-full max-w-[48px] flex flex-col items-center justify-end h-full">
+<div class="w-full bg-secondary rounded-t-none transition-all group-hover:brightness-110" style="height: 8%;"></div>
+<div class="w-full bg-tertiary-container transition-all group-hover:brightness-110" style="height: 14%;"></div>
+<div class="w-full bg-primary rounded-t-sm transition-all group-hover:brightness-110" style="height: 12%;"></div>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-secondary mt-2 group-hover:text-primary group-hover:font-bold">MIN</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Row: Tri-Bento Layout (Donut breakdown, Hardware telemetry, Hourly load heatmap) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Card 1: Distribusi Produk Terbanyak (Donut Breakdown) (4 cols) -->
+<div class="lg:col-span-4 flex flex-col justify-between bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">KOMPOSISI BATCH</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Distribusi Produk</h3>
+</div>
+<span class="material-symbols-outlined text-secondary">pie_chart</span>
+</div>
+<!-- SVG Donut Chart -->
+<div class="flex flex-col items-center justify-center my-space-md relative">
+<svg class="w-48 h-48 -rotate-90 transform" viewbox="0 0 160 160">
+<!-- Background track -->
+<circle class="text-surface-container" cx="80" cy="80" fill="transparent" r="62" stroke="currentColor" stroke-width="18"></circle>
+<!-- Arabica 45% -> 45 * 3.8955 = 175.3 on circum 389.55 -->
+<circle class="transition-all duration-500 hover:opacity-90" cx="80" cy="80" fill="transparent" r="62" stroke="#004ac6" stroke-dasharray="175.3 389.55" stroke-dashoffset="0" stroke-width="18"></circle>
+<!-- Robusta 30% -> 116.86 -->
+<circle class="transition-all duration-500 hover:opacity-90" cx="80" cy="80" fill="transparent" r="62" stroke="#007d55" stroke-dasharray="116.86 389.55" stroke-dashoffset="-175.3" stroke-width="18"></circle>
+<!-- Cokelat 15% -> 58.43 -->
+<circle class="transition-all duration-500 hover:opacity-90" cx="80" cy="80" fill="transparent" r="62" stroke="#565e74" stroke-dasharray="58.43 389.55" stroke-dashoffset="-292.16" stroke-width="18"></circle>
+<!-- Lainnya 10% -> 38.95 -->
+<circle class="transition-all duration-500 hover:opacity-90" cx="80" cy="80" fill="transparent" r="62" stroke="#cbdbf5" stroke-dasharray="38.95 389.55" stroke-dashoffset="-350.59" stroke-width="18"></circle>
+</svg>
+<!-- Donut Center Inset Stats -->
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase">Dominan</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Arabica</span>
+<span class="font-mono-label-sm text-mono-label-sm text-on-surface-variant">45.0%</span>
+</div>
+</div>
+<!-- Detailed Breakdown Percentages -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-sm bg-primary"></span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Arabica Specialty</span>
+</div>
+<div class="flex items-center gap-space-sm font-mono-label-sm text-mono-label-sm">
+<span class="text-on-surface font-semibold">829.1 kg</span>
+<span class="text-primary font-bold">45%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-sm bg-tertiary-container"></span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Robusta Grade 1</span>
+</div>
+<div class="flex items-center gap-space-sm font-mono-label-sm text-mono-label-sm">
+<span class="text-on-surface font-semibold">552.8 kg</span>
+<span class="text-tertiary font-bold">30%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-sm bg-secondary"></span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Biji Cokelat Fermentasi</span>
+</div>
+<div class="flex items-center gap-space-sm font-mono-label-sm text-mono-label-sm">
+<span class="text-on-surface font-semibold">276.4 kg</span>
+<span class="text-secondary font-bold">15%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-sm bg-surface-dim"></span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Lainnya / Raw Spice</span>
+</div>
+<div class="flex items-center gap-space-sm font-mono-label-sm text-mono-label-sm">
+<span class="text-on-surface font-medium">184.2 kg</span>
+<span class="text-secondary font-semibold">10%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Device Uptime & Station Productivity (5 cols) -->
+<div class="lg:col-span-5 flex flex-col justify-between bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">HARDWARE TELEMETRY</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Produktivitas &amp; Uptime Timbangan</h3>
+</div>
+<span class="inline-flex items-center gap-1 font-mono-label-sm text-mono-label-sm bg-tertiary-fixed/30 text-tertiary font-semibold px-2 py-0.5 rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>2 UNIT AKTIF
+        </span>
+</div>
+<!-- Station Comparison Blocks -->
+<div class="flex flex-col gap-space-md my-space-sm">
+<!-- SCALE-001 (Bay A - Packout) -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col gap-space-sm hover:bg-surface-container transition-colors">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container"></span>
+<span class="font-headline-sm text-base text-on-surface font-bold">SCALE-001</span>
+<span class="font-mono-label-sm text-[11px] text-secondary">Bay A (Packout Primary)</span>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-tertiary font-bold bg-surface-container-lowest px-2 py-0.5 rounded shadow-xs">99.4% Uptime</span>
+</div>
+<!-- Metric Row -->
+<div class="grid grid-cols-3 gap-2 pt-1 text-left">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-[11px] text-secondary">THROUGHPUT</span>
+<span class="font-mono-label-lg text-mono-label-lg font-bold text-primary">142/jam</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-[11px] text-secondary">MCU ESP32</span>
+<span class="font-mono-label-lg text-mono-label-lg font-bold text-on-surface">36.4°C</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-[11px] text-secondary">ERR RATE</span>
+<span class="font-mono-label-lg text-mono-label-lg font-bold text-tertiary">0.02%</span>
+</div>
+</div>
+<!-- Load cell health progress bar -->
+<div class="flex flex-col gap-1 mt-1">
+<div class="flex justify-between font-mono-label-sm text-[10px] text-secondary">
+<span>Sensor Loadcell Drift Margin</span>
+<span class="text-tertiary font-semibold">Normal (0.003 kg/24h)</span>
+</div>
+<div class="w-full bg-surface-dim rounded-full h-1.5 overflow-hidden">
+<div class="bg-tertiary-container h-1.5 rounded-full" style="width: 94%"></div>
+</div>
+</div>
+</div>
+<!-- SCALE-002 (Bay B - Bulk Secondary) -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col gap-space-sm hover:bg-surface-container transition-colors">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container"></span>
+<span class="font-headline-sm text-base text-on-surface font-bold">SCALE-002</span>
+<span class="font-mono-label-sm text-[11px] text-secondary">Bay B (Chemical &amp; Bulk)</span>
+</div>
+<span class="font-mono-label-sm text-mono-label-sm text-tertiary font-bold bg-surface-container-lowest px-2 py-0.5 rounded shadow-xs">98.9% Uptime</span>
+</div>
+<!-- Metric Row -->
+<div class="grid grid-cols-3 gap-2 pt-1 text-left">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-[11px] text-secondary">THROUGHPUT</span>
+<span class="font-mono-label-lg text-mono-label-lg font-bold text-primary">98/jam</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-[11px] text-secondary">MCU ESP32</span>
+<span class="font-mono-label-lg text-mono-label-lg font-bold text-on-surface">38.1°C</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-[11px] text-secondary">ERR RATE</span>
+<span class="font-mono-label-lg text-mono-label-lg font-bold text-tertiary">0.04%</span>
+</div>
+</div>
+<!-- Load cell health progress bar -->
+<div class="flex flex-col gap-1 mt-1">
+<div class="flex justify-between font-mono-label-sm text-[10px] text-secondary">
+<span>Sensor Loadcell Drift Margin</span>
+<span class="text-tertiary font-semibold">Terkalibrasi (Kemarin)</span>
+</div>
+<div class="w-full bg-surface-dim rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick action link -->
+<div class="pt-space-sm flex items-center justify-between font-mono-label-sm text-mono-label-sm">
+<span class="text-secondary">Protokol: Modbus RTU / MQTT over TLS</span>
+<a class="text-primary font-bold hover:underline flex items-center gap-1" href="#">
+          Diagnostics Hardware
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Card 3: Hourly Peak Heatmap & Industrial Workstation Activity (3 cols) -->
+<div class="lg:col-span-3 flex flex-col justify-between bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col">
+<span class="font-mono-label-sm text-mono-label-sm text-secondary uppercase tracking-wider">BEBAN OPERASIONAL</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Aktivitas Jam Sibuk</h3>
+</div>
+<span class="material-symbols-outlined text-secondary">schedule</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Konsentrasi frekuensi siklus penimbangan per interval kerja harian (Shift 1 &amp; 2).</p>
+<!-- Heatmap / Bar Intensity Indicator -->
+<div class="flex flex-col gap-2 my-space-md">
+<!-- 08:00 - 10:00 -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-mono-label-sm text-[11px]">
+<span class="text-on-surface font-semibold">08:00 - 10:00 (Pagi)</span>
+<span class="text-primary font-bold">310 siklus</span>
+</div>
+<div class="w-full bg-surface-container-low h-3 rounded-md overflow-hidden">
+<div class="bg-primary-container h-full rounded-md" style="width: 85%"></div>
+</div>
+</div>
+<!-- 10:00 - 12:00 (Peak Shift 1) -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-mono-label-sm text-[11px]">
+<span class="text-on-surface font-bold flex items-center gap-1">
+              10:00 - 12:00
+              <span class="bg-primary text-on-primary text-[9px] px-1 py-0.2 rounded uppercase">Puncak</span>
+</span>
+<span class="text-primary font-bold">425 siklus</span>
+</div>
+<div class="w-full bg-surface-container-low h-3 rounded-md overflow-hidden">
+<div class="bg-primary h-full rounded-md" style="width: 100%"></div>
+</div>
+</div>
+<!-- 13:00 - 15:00 -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-mono-label-sm text-[11px]">
+<span class="text-on-surface font-semibold">13:00 - 15:00 (Siang)</span>
+<span class="text-primary font-bold">290 siklus</span>
+</div>
+<div class="w-full bg-surface-container-low h-3 rounded-md overflow-hidden">
+<div class="bg-primary-container h-full rounded-md" style="width: 72%"></div>
+</div>
+</div>
+<!-- 15:00 - 17:00 (Sore) -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-mono-label-sm text-[11px]">
+<span class="text-on-surface font-semibold">15:00 - 17:00 (Sore)</span>
+<span class="text-primary font-bold">345 siklus</span>
+</div>
+<div class="w-full bg-surface-container-low h-3 rounded-md overflow-hidden">
+<div class="bg-primary-container h-full rounded-md" style="width: 82%"></div>
+</div>
+</div>
+<!-- 17:00 - 20:00 (Lembur / Shift 2) -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-mono-label-sm text-[11px]">
+<span class="text-secondary font-medium">17:00 - 20:00 (Malam)</span>
+<span class="text-secondary font-semibold">110 siklus</span>
+</div>
+<div class="w-full bg-surface-container-low h-3 rounded-md overflow-hidden">
+<div class="bg-surface-dim h-full rounded-md" style="width: 28%"></div>
+</div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container rounded-lg flex items-center justify-between text-on-surface-variant font-mono-label-sm text-[11px]">
+<span>Rata-rata cycle time:</span>
+<span class="font-bold text-on-surface">4.2 detik / batch</span>
+</div>
+</div>
+</div>
+<!-- Operational Context Footer / Status Log Micro-table -->
+<div class="flex flex-col lg:flex-row items-center justify-between bg-surface-container-lowest p-space-md rounded-xl shadow-sm gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">database</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-sm text-on-surface font-bold">Integritas Log Penimbangan ESP32</span>
+<span class="font-body-sm text-body-sm text-secondary">1,480 catatan tersinkronisasi sempurna ke database cloud via buffer FIFO lokal.</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-2 font-mono-label-sm text-mono-label-sm text-secondary">
+<span>LAST AUDIT:</span>
+<span class="font-bold text-on-surface">14:02:18 WIB</span>
+</div>
+<button class="px-space-md py-1.5 bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface font-mono-label-sm text-mono-label-sm transition-colors active:scale-95" type="button">
+        Audit Log Lengkap
+      </button>
+</div>
+</div>
+</div>
+<script>
+  // Simple interactive filter toggle logic
+  (function() {
+    const switcher = document.getElementById('period-switcher');
+    if (!switcher) return;
+    
+    const buttons = switcher.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        buttons.forEach(b => {
+          b.classList.remove('bg-surface-container-lowest', 'text-primary', 'font-bold', 'shadow-sm');
+          b.classList.add('text-on-surface-variant');
+        });
+        this.classList.add('bg-surface-container-lowest', 'text-primary', 'font-bold', 'shadow-sm');
+        this.classList.remove('text-on-surface-variant');
+      });
+    });
+  })();
+</script></main></div></body></html>
