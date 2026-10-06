@@ -54,8 +54,8 @@ export function TopBar() {
             <User className="w-4 h-4" />
           </div>
           <div className="hidden sm:flex flex-col text-left">
-            <span className="text-xs font-semibold text-gray-800">Operator</span>
-            <span className="text-[11px] text-gray-400">Shift Pagi</span>
+            <span className="text-xs font-semibold text-gray-800">Razka</span>
+            <span className="text-[11px] text-gray-400">Operator (Shift Pagi)</span>
           </div>
         </div>
       </div>

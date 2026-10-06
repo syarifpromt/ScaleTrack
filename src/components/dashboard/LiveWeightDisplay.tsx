@@ -1,54 +1,132 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { clsx } from 'clsx';
-import { Scale, ArrowRight, RotateCcw, ArrowUpCircle, Plus } from 'lucide-react';
+import { Scale, ArrowRight, RotateCcw, Volume2, VolumeX, ArrowUpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useScaleEngine } from '@/hooks/useScaleEngine';
 import { formatAdaptiveWeight } from '@/lib/utils';
+import { unlockScaleAudio, playStableSound } from '@/lib/scale-sounds';
 
 export function LiveWeightDisplay() {
   const [baseLoad, setBaseLoad] = useState<number>(0.000);
-  const [jitter, setJitter] = useState<number>(0);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
-  // Subtle sensor noise simulation
+  // Browser audio unlock on first user interaction
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (baseLoad <= 0.005) {
-        setJitter(0);
-        return;
+    const unlock = () => {
+      unlockScaleAudio();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
+
+  const handleToggleSound = useCallback(() => {
+    if (!soundEnabled) {
+      unlockScaleAudio();
+      playStableSound();
+    }
+    setSoundEnabled(!soundEnabled);
+  }, [soundEnabled]);
+
+  // Realistic load simulation: dynamic fluctuation (~1.2s) + stabilization (~1.0s) = ~2.2s total Orange phase
+  const baseLoadRef = useRef<number>(0.000);
+  const targetLoadRef = useRef<number>(0.000);
+  const rafRef = useRef<number | null>(null);
+
+  const cancelLoadAnimation = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
+
+  const applyLoad = useCallback((value: number) => {
+    baseLoadRef.current = value;
+    setBaseLoad(value);
+  }, []);
+
+  const placeLoad = useCallback((rawTarget: number) => {
+    cancelLoadAnimation();
+
+    const target = Math.max(0, Number(rawTarget.toFixed(3)));
+    targetLoadRef.current = target;
+
+    // Lifting the item off: drop to zero immediately
+    if (target <= 0.005) {
+      applyLoad(0);
+      return;
+    }
+
+    const maxCap = 5.000;
+    let from = baseLoadRef.current;
+    let delta = target - from;
+
+    // Jika mengklik beban yang sama, beri efek dinamis seakan barang ditaruh ulang
+    if (Math.abs(delta) < 0.005) {
+      from = Math.max(0, target - 0.120);
+      delta = target - from;
+    }
+
+    const animationDurationMs = 1200;
+    const start = performance.now();
+    const amplitude = Math.max(0.015, Math.min(0.045, Math.abs(delta) * 0.15));
+
+    const step = (now: number) => {
+      const elapsed = now - start;
+
+      if (elapsed < animationDurationMs) {
+        const p = elapsed / animationDurationMs;
+        const base = from + delta * (1 - Math.pow(1 - p, 2.6));
+        const fluctuation = amplitude * Math.sin(p * Math.PI * 5) * Math.pow(1 - p, 1.8);
+
+        let value = base + fluctuation;
+        if (target <= maxCap) {
+          value = Math.min(value, maxCap);
+        }
+        value = Math.max(0, value);
+
+        applyLoad(Number(value.toFixed(4)));
+        rafRef.current = requestAnimationFrame(step);
+      } else {
+        applyLoad(target);
+        rafRef.current = null;
       }
-      const noise = (Math.random() - 0.5) * 0.001;
-      setJitter(noise);
-    }, 150);
+    };
 
-    return () => clearInterval(interval);
-  }, [baseLoad]);
+    rafRef.current = requestAnimationFrame(step);
+  }, [applyLoad, cancelLoadAnimation]);
 
-  const rawSensorWeight = baseLoad > 0.005 ? Math.max(0, baseLoad + jitter) : 0;
+  useEffect(() => cancelLoadAnimation, [cancelLoadAnimation]);
 
   const {
     netWeight,
     isStable,
     isOverload,
-    handleTare,
     handleZero,
     maxCapacityKg
-  } = useScaleEngine(rawSensorWeight, {
+  } = useScaleEngine(baseLoad, {
     maxCapacityKg: 5.000,
-    minWeightTriggerKg: 0.020,
+    minWeightTriggerKg: 0.010,
     stabilityToleranceKg: 0.001,
-    stabilityDurationMs: 1200,
-    soundEnabled: false
+    stabilityDurationMs: 1000,
+    soundEnabled
   });
 
   const adaptiveWeight = formatAdaptiveWeight(netWeight);
   const loadPercent = Math.min(100, Math.max(0, (netWeight / maxCapacityKg) * 100));
+  const isWeighing = !isOverload && !isStable && netWeight > 0.010;
 
   return (
     <div className="card h-full flex flex-col justify-between bg-white rounded-2xl shadow-sm border border-gray-200">
       {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-2xl">
+      <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2 bg-gray-50/50 rounded-t-2xl">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
             <Scale className="w-4 h-4" />
@@ -59,13 +137,28 @@ export function LiveWeightDisplay() {
           </div>
         </div>
 
-        <Link 
-          href="/weighing" 
-          className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline"
-        >
-          <span>Buka Stasiun Timbang</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex items-center gap-2.5">
+          {/* Sound Toggle Button */}
+          <button
+            onClick={handleToggleSound}
+            className={clsx(
+              "px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer",
+              soundEnabled ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100" : "bg-gray-100 border-gray-200 text-gray-400 hover:bg-gray-200"
+            )}
+            title={soundEnabled ? "Suara notifikasi aktif" : "Suara dimatikan"}
+          >
+            {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-blue-600" /> : <VolumeX className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{soundEnabled ? 'Suara' : 'Mute'}</span>
+          </button>
+
+          <Link 
+            href="/weighing" 
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline"
+          >
+            <span>Stasiun Timbang</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* Compact Clean Screen Display */}
@@ -76,39 +169,76 @@ export function LiveWeightDisplay() {
             ? "bg-rose-50/80 border-rose-300 ring-2 ring-rose-400/30"
             : isStable
             ? "bg-emerald-50/40 border-emerald-300 ring-2 ring-emerald-400/30"
+            : isWeighing
+            ? "bg-amber-50/60 border-amber-300 ring-2 ring-amber-400/30"
             : "bg-slate-50/80 border-slate-200/90"
         )}>
-          {/* Status Badge */}
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className={clsx(
-              "w-2 h-2 rounded-full",
-              isOverload ? "bg-rose-500" : isStable ? "bg-emerald-500" : netWeight > 0.02 ? "bg-amber-500 animate-ping" : "bg-gray-400"
-            )} />
-            <span className="text-xs font-semibold text-gray-600">
-              {isOverload ? 'Kelebihan Beban (> 5 kg)' : isStable ? 'Stabil (Fiks)' : netWeight > 0.02 ? 'Sedang Menimbang...' : 'Timbangan Kosong'}
-            </span>
+          {/* Status Badge: Locked height h-8 */}
+          <div className="h-8 flex items-center mb-1">
+            <div className={clsx(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200",
+              isOverload
+                ? "bg-rose-100 text-rose-700 border border-rose-200"
+                : isStable
+                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                : isWeighing
+                ? "bg-amber-100 text-amber-900 border border-amber-300 animate-pulse"
+                : "bg-gray-100 text-gray-500"
+            )}>
+              {isOverload ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <span>⚠ Kelebihan Beban (&gt; 5 kg)</span>
+                </>
+              ) : isStable ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span>✓ Selesai Menimbang</span>
+                </>
+              ) : isWeighing ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  <span>Sedang Menimbang...</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-gray-400" />
+                  <span>Standby</span>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Big Digital Weight Number */}
-          <div className="flex items-baseline gap-2 my-1">
-            <span className={clsx(
-              "font-mono font-black text-5xl sm:text-6xl tracking-tight tabular-nums transition-colors duration-200",
-              isOverload
-                ? "text-rose-600"
-                : isStable
-                ? "text-emerald-600"
-                : "text-gray-900"
-            )}>
-              {isOverload ? 'OVERLOAD' : adaptiveWeight.value}
-            </span>
-            {!isOverload && (
+          {/* Big Digital Weight Number: Locked height h-[72px] sm:h-[80px] */}
+          <div className="h-[72px] sm:h-[80px] flex items-center justify-center my-1">
+            <div className="flex items-baseline gap-2">
               <span className={clsx(
-                "text-2xl font-bold transition-colors",
-                isStable ? "text-emerald-600" : "text-gray-400"
+                "font-black transition-colors duration-200",
+                isOverload
+                  ? "text-4xl sm:text-5xl font-black tracking-normal text-rose-600 whitespace-nowrap"
+                  : "text-5xl sm:text-6xl font-mono tracking-tight tabular-nums",
+                !isOverload && (
+                  isStable
+                    ? "text-emerald-600"
+                    : isWeighing
+                    ? "text-amber-500"
+                    : "text-gray-900"
+                )
               )}>
-                {adaptiveWeight.unit}
+                {isOverload ? 'OVERLOAD' : adaptiveWeight.value}
               </span>
-            )}
+              {!isOverload && (
+                <span className={clsx(
+                  "text-2xl font-bold transition-colors",
+                  isStable ? "text-emerald-600" : isWeighing ? "text-amber-500" : "text-gray-400"
+                )}>
+                  {adaptiveWeight.unit}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Indikator Bar Kapasitas Maksimal */}
@@ -117,7 +247,7 @@ export function LiveWeightDisplay() {
               <span>0.00 kg</span>
               <span className={clsx(
                 "font-bold uppercase tracking-wider text-[10px]",
-                isOverload ? "text-rose-600 font-bold" : isStable ? "text-emerald-700" : "text-gray-700"
+                isOverload ? "text-rose-600 font-bold" : isStable ? "text-emerald-700" : isWeighing ? "text-amber-600" : "text-gray-700"
               )}>
                 Kapasitas: {isOverload ? '100% (OVERLOAD)' : `${loadPercent.toFixed(0)}%`} (Maks {maxCapacityKg.toFixed(1)} kg)
               </span>
@@ -132,6 +262,8 @@ export function LiveWeightDisplay() {
                     ? "bg-rose-500 w-full" 
                     : isStable 
                     ? "bg-emerald-500" 
+                    : isWeighing
+                    ? "bg-amber-500"
                     : loadPercent > 80 
                     ? "bg-amber-500" 
                     : "bg-blue-600"
@@ -145,19 +277,33 @@ export function LiveWeightDisplay() {
 
       {/* Compact Quick Actions / Mini Simulator */}
       <div className="p-3.5 px-5 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-gray-500 font-medium">Uji Cepat:</span>
           <button
-            onClick={() => setBaseLoad(prev => prev > 0 ? 0 : 0.500)}
+            onClick={() => placeLoad(0.500)}
             className="py-1 px-2.5 bg-white hover:bg-blue-50 text-blue-700 border border-gray-200 hover:border-blue-300 rounded-lg font-bold shadow-2xs transition cursor-pointer"
           >
-            {baseLoad > 0 ? 'Kosongkan (0 kg)' : '+500 gram'}
+            500 g
           </button>
           <button
-            onClick={() => setBaseLoad(1.000)}
+            onClick={() => placeLoad(1.000)}
             className="py-1 px-2.5 bg-white hover:bg-blue-50 text-blue-700 border border-gray-200 hover:border-blue-300 rounded-lg font-bold shadow-2xs transition cursor-pointer"
           >
             1 kg
+          </button>
+          <button
+            onClick={() => placeLoad(5.500)}
+            className="py-1 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg font-bold shadow-2xs transition cursor-pointer"
+            title="Uji coba overload > 5 kg"
+          >
+            5.5 kg (Overload)
+          </button>
+          <button
+            onClick={() => placeLoad(0.000)}
+            className="py-1 px-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1"
+          >
+            <ArrowUpCircle className="w-3 h-3" />
+            <span>Angkat (0 kg)</span>
           </button>
         </div>
 
@@ -168,7 +314,7 @@ export function LiveWeightDisplay() {
             title="Reset sensor ke nol (Zero)"
           >
             <RotateCcw className="w-3 h-3 text-blue-600" />
-            <span>Zero (0)</span>
+            <span>Zero</span>
           </button>
         </div>
       </div>

@@ -17,7 +17,7 @@ export function BatchMetadata() {
       <div className="grid grid-cols-2 gap-3 text-xs">
         <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex flex-col gap-1">
           <span className="text-gray-500 font-medium">Operator / Kasir</span>
-          <span className="font-bold text-gray-900 text-sm">Budi Santoso</span>
+          <span className="font-bold text-gray-900 text-sm">Razka</span>
           <span className="text-gray-400 text-[11px]">Shift 1 (Pagi)</span>
         </div>
 

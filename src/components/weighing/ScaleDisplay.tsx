@@ -53,6 +53,8 @@ export function ScaleDisplay({
   const loadPercent = Math.min(100, Math.max(0, (netWeight / maxCapacityKg) * 100));
   const totalPrice = Math.round(netWeight * pricePerKg);
   const adaptiveWeight = formatAdaptiveWeight(netWeight);
+  // Sedang menimbang: ada beban, belum stabil, bukan overload
+  const isWeighing = !isOverload && !isStable && netWeight > 0.02;
 
   return (
     <div className="card p-5 sm:p-6 flex flex-col gap-4 bg-white rounded-2xl shadow-sm border border-gray-200">
@@ -84,11 +86,13 @@ export function ScaleDisplay({
 
       {/* Main Clean Light Viewport Screen */}
       <div className={cn(
-        "rounded-2xl p-6 sm:p-7 flex flex-col gap-5 transition-all duration-300 border shadow-xs",
+        "rounded-2xl p-6 sm:p-7 flex flex-col gap-5 transition-all duration-500 border shadow-xs",
         isOverload
           ? "bg-rose-50/80 border-rose-300 ring-2 ring-rose-400/30"
           : isStable
           ? "bg-emerald-50/40 border-emerald-300 ring-2 ring-emerald-400/30"
+          : isWeighing
+          ? "bg-amber-50/60 border-amber-300 ring-2 ring-amber-400/30"
           : "bg-slate-50/80 border-slate-200/90"
       )}>
         {/* Active Product & Price Info */}
@@ -99,72 +103,120 @@ export function ScaleDisplay({
               {productName || 'Pilih Produk'}
             </span>
           </div>
+
           <div className="text-xs text-gray-600 font-mono shrink-0">
             Harga: <strong className="text-emerald-700 text-sm font-bold">{formatRupiah(pricePerKg)} / kg</strong>
           </div>
         </div>
 
-        {/* 2 Clean Computation Boxes: Berat Barang & Total Harga */}
+        {/* 2 Clean Computation Boxes: Berat Barang & Total Harga (Symmetric & Zero-Layout-Shift) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
-          {/* Box 1: Berat Barang (Bersih & Simetris) */}
+          {/* Box 1: Berat Barang */}
           <div className={cn(
-            "flex flex-col justify-between p-4 sm:p-5 rounded-2xl border transition-all min-w-0 shadow-2xs",
+            "flex flex-col justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-300 min-w-0 shadow-2xs",
             isOverload
               ? "bg-rose-50 border-rose-200 text-rose-700"
               : isStable
               ? "bg-white border-emerald-300 ring-1 ring-emerald-400/30"
+              : isWeighing
+              ? "bg-white border-amber-300 ring-1 ring-amber-400/30"
               : "bg-white border-gray-200"
           )}>
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+            {/* Header: h-6 */}
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 h-6">
               <Scale className="w-3.5 h-3.5 text-blue-600" />
               <span>Berat Barang</span>
             </div>
 
-            {/* Angka Digital Berat */}
-            <div className="flex items-baseline gap-2 overflow-hidden my-0.5">
-              <span className={cn(
-                "text-5xl sm:text-6xl font-mono font-black tracking-tight tabular-nums transition-colors duration-200 truncate",
-                isOverload
-                  ? "text-rose-600"
-                  : isStable
-                  ? "text-emerald-600"
-                  : "text-gray-900"
-              )}>
-                {isOverload ? 'OVERLOAD' : adaptiveWeight.value}
-              </span>
-              {!isOverload && (
+            {/* Angka Digital Berat: Locked height h-[72px] sm:h-[80px] to prevent any layout shifts */}
+            <div className="h-[72px] sm:h-[80px] flex items-center min-w-0">
+              <div className="flex items-baseline gap-2">
                 <span className={cn(
-                  "text-2xl font-bold transition-colors shrink-0",
-                  isStable ? "text-emerald-600" : "text-gray-500"
+                  "font-black transition-colors duration-300",
+                  isOverload
+                    ? "text-3xl sm:text-4xl font-black tracking-normal text-rose-600 whitespace-nowrap"
+                    : "text-5xl sm:text-6xl font-mono tracking-tight tabular-nums",
+                  !isOverload && (
+                    isStable
+                      ? "text-emerald-600"
+                      : isWeighing
+                      ? "text-amber-500"
+                      : "text-gray-900"
+                  )
                 )}>
-                  {adaptiveWeight.unit}
+                  {isOverload ? 'OVERLOAD' : adaptiveWeight.value}
                 </span>
-              )}
+                {!isOverload && (
+                  <span className={cn(
+                    "text-2xl font-bold transition-colors duration-300 shrink-0",
+                    isStable ? "text-emerald-600" : isWeighing ? "text-amber-500" : "text-gray-500"
+                  )}>
+                    {adaptiveWeight.unit}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Indikator Kestabilan */}
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mt-1">
-              <span className={cn(
-                "w-2 h-2 rounded-full",
-                isOverload ? "bg-rose-500" : isStable ? "bg-emerald-500" : netWeight > 0.02 ? "bg-amber-500 animate-ping" : "bg-gray-300"
-              )} />
-              <span>
-                {isOverload ? 'Kelebihan Beban (> 5 kg)' : isStable ? '✓ Berat Stabil' : netWeight > 0.02 ? 'Menimbang...' : 'Kosong'}
-              </span>
+            {/* Indikator Status Menimbang: Locked height h-8 */}
+            <div className="h-8 flex items-center">
+              <div className={cn(
+                "flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 w-fit",
+                isOverload
+                  ? "bg-rose-100 text-rose-700 border border-rose-200"
+                  : isStable
+                  ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                  : isWeighing
+                  ? "bg-amber-100 text-amber-900 border border-amber-300 animate-pulse"
+                  : "bg-gray-100 text-gray-500"
+              )}>
+                {isOverload ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    <span>⚠ Kelebihan Beban (&gt; 5 kg)</span>
+                  </>
+                ) : isStable ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>✓ Selesai Menimbang</span>
+                  </>
+                ) : isWeighing ? (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span>Sedang Menimbang...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-gray-400" />
+                    <span>Standby</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Box 2: Total Harga */}
           <div className="flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 shadow-2xs min-w-0">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">
+            {/* Header: h-6 */}
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 h-6">
               <Banknote className="w-4 h-4 text-emerald-700" />
               <span>Total Harga</span>
             </div>
-            <div className="text-3xl sm:text-4xl font-mono font-black tracking-tight tabular-nums text-emerald-800 truncate my-0.5">
-              {isOverload ? 'Rp 0' : formatRupiah(totalPrice)}
+
+            {/* Angka Total Harga: Locked height h-[72px] sm:h-[80px] */}
+            <div className="h-[72px] sm:h-[80px] flex items-center min-w-0">
+              <div className="text-3xl sm:text-4xl font-mono font-black tracking-tight tabular-nums text-emerald-800 truncate">
+                {isOverload ? 'Rp 0' : formatRupiah(totalPrice)}
+              </div>
             </div>
-            <div className="text-[11px] text-emerald-700 font-medium mt-1">
-              Dihitung live: Berat × Harga/kg
+
+            {/* Subtitle / Footer: Locked height h-8 */}
+            <div className="h-8 flex items-center">
+              <span className="text-[11px] text-emerald-700 font-medium">
+                {isOverload ? 'Kelebihan beban — harga dinonaktifkan' : 'Dihitung live: Berat × Harga/kg'}
+              </span>
             </div>
           </div>
         </div>
@@ -175,7 +227,7 @@ export function ScaleDisplay({
             <span>0.00 kg</span>
             <span className={cn(
               "font-bold uppercase tracking-wider",
-              isOverload ? "text-rose-600 font-bold" : isStable ? "text-emerald-700" : "text-gray-700"
+              isOverload ? "text-rose-600 font-bold" : isStable ? "text-emerald-700" : isWeighing ? "text-amber-600" : "text-gray-700"
             )}>
               KAPASITAS SENSOR: {isOverload ? '100% (OVERLOAD)' : `${loadPercent.toFixed(0)}%`} (MAKS {maxCapacityKg.toFixed(1)} KG)
             </span>
@@ -190,6 +242,8 @@ export function ScaleDisplay({
                   ? "bg-rose-500 w-full" 
                   : isStable 
                   ? "bg-emerald-500" 
+                  : isWeighing
+                  ? "bg-amber-500"
                   : loadPercent > 80 
                   ? "bg-amber-500" 
                   : "bg-blue-600"
@@ -260,6 +314,13 @@ export function ScaleDisplay({
                 className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg shadow-2xs text-xs font-bold transition cursor-pointer"
               >
                 5 kg (Maks)
+              </button>
+              <button
+                onClick={() => onSimulateWeight(5.500)}
+                className="py-1 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg shadow-2xs text-xs font-bold transition cursor-pointer"
+                title="Uji coba simulasi kelebihan beban (Overload > 5.0 kg)"
+              >
+                5.5 kg (Overload)
               </button>
             </div>
           </div>

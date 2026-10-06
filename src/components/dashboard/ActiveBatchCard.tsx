@@ -160,7 +160,7 @@ export function ActiveBatchCard() {
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-gray-500">Petugas Kasir / Timbang</span>
-              <span className="font-medium text-gray-800">Budi Santoso</span>
+              <span className="font-medium text-gray-800">Razka</span>
             </div>
           </div>
         </div>

@@ -1,30 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { playStableSound, playOverloadSound } from '@/lib/scale-sounds';
 
-// Web Audio API confirmation beep sound
-export function playChimeBeep(frequency = 987.77, duration = 0.12) { // B5 chime
-  try {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-
-    gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration);
-  } catch (err) {
-    console.debug('Audio error or blocked by autoplay policy:', err);
-  }
-}
+// Interval between repeated overload alarms (ms) while the scale stays overloaded
+const OVERLOAD_ALARM_INTERVAL_MS = 1500;
 
 export interface ScaleEngineConfig {
   maxCapacityKg?: number;       // default: 5.000 kg
@@ -68,14 +46,13 @@ export function useScaleEngine(
   const referenceWeightRef = useRef<number>(netWeight);
   const wasStableRef = useRef<boolean>(false);
 
-  // Stability detector loop
+  // Stability detector loop with timer
   useEffect(() => {
     // 1. If Overload, zero, or negative -> Not stable
     if (isOverload || isNegative || netWeight < minWeightTriggerKg) {
       setIsStable(false);
       setStabilityProgress(0);
       setLockedStableWeight(null);
-      stableStartTimeRef.current = null;
       wasStableRef.current = false;
       referenceWeightRef.current = netWeight;
       return;
@@ -87,33 +64,38 @@ export function useScaleEngine(
     if (deviation > stabilityToleranceKg) {
       // Weight is moving / unstable: reset timer
       referenceWeightRef.current = netWeight;
-      stableStartTimeRef.current = Date.now();
       setIsStable(false);
       wasStableRef.current = false;
       setLockedStableWeight(null);
-      setStabilityProgress(10);
-    } else {
-      // Weight stays within tolerance band
-      if (!stableStartTimeRef.current) {
-        stableStartTimeRef.current = Date.now();
-      }
+      setStabilityProgress(20);
+    }
 
-      const elapsed = Date.now() - stableStartTimeRef.current;
-      const progress = Math.min(100, Math.round((elapsed / stabilityDurationMs) * 100));
-      setStabilityProgress(progress);
-
-      if (elapsed >= stabilityDurationMs) {
-        if (!wasStableRef.current) {
-          wasStableRef.current = true;
-          setIsStable(true);
-          setLockedStableWeight(referenceWeightRef.current);
-          if (soundEnabled) {
-            playChimeBeep();
-          }
+    // 3. Schedule stable resolution after stabilityDurationMs of constancy
+    const timer = setTimeout(() => {
+      setIsStable(true);
+      setStabilityProgress(100);
+      setLockedStableWeight(netWeight);
+      if (!wasStableRef.current) {
+        wasStableRef.current = true;
+        if (soundEnabled) {
+          playStableSound();
         }
       }
-    }
+    }, stabilityDurationMs);
+
+    return () => clearTimeout(timer);
   }, [netWeight, isOverload, isNegative, minWeightTriggerKg, stabilityToleranceKg, stabilityDurationMs, soundEnabled]);
+
+  // Overload alarm: sound immediately, then repeat while still overloaded.
+  // Stops automatically when the load is removed or sound is muted.
+  useEffect(() => {
+    if (!isOverload || !soundEnabled) return;
+
+    playOverloadSound();
+    const interval = setInterval(playOverloadSound, OVERLOAD_ALARM_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [isOverload, soundEnabled]);
+
 
   // Actions: Tare, Zero, Clear Tare
   const handleTare = useCallback(() => {

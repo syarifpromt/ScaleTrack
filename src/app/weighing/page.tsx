@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ScaleDisplay } from '@/components/weighing/ScaleDisplay';
 import { ProductSelector, Product } from '@/components/weighing/ProductSelector';
 import { BatchMetadata } from '@/components/weighing/BatchMetadata';
@@ -8,6 +8,7 @@ import { ActionButtons } from '@/components/weighing/ActionButtons';
 import { RecentWeighingsMini } from '@/components/weighing/RecentWeighingsMini';
 import { SyncBanner } from '@/components/weighing/SyncBanner';
 import { useScaleEngine } from '@/hooks/useScaleEngine';
+import { unlockScaleAudio, playStableSound } from '@/lib/scale-sounds';
 
 const initialSelectedProduct: Product = {
   id: '1',
@@ -21,34 +22,137 @@ export default function WeighingStationPage() {
   const [syncId, setSyncId] = useState(142);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  // Browsers block audio until the user interacts with the page once.
+  // Unlock it on the first click / key press so automatic alerts can play.
+  useEffect(() => {
+    const unlock = () => {
+      unlockScaleAudio();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
+
+  // Toggle sound; when turning it on, play a short preview so the operator can check volume
+  const handleToggleSound = useCallback(() => {
+    if (!soundEnabled) {
+      unlockScaleAudio();
+      playStableSound();
+    }
+    setSoundEnabled(!soundEnabled);
+  }, [soundEnabled]);
+
+
   // Selected Active Product for free-weight pricing
   const [selectedProduct, setSelectedProduct] = useState<Product>(initialSelectedProduct);
 
-  // Simulation state: Base load placed on scale (kg)
-  const [baseLoad, setBaseLoad] = useState<number>(0.250); // Contoh awal: 250 gram
+  // Simulation state: Base load placed on scale (kg) - start at 0 kg (standby)
+  const [baseLoad, setBaseLoad] = useState<number>(0.000);
   const [simulatedJitter, setSimulatedJitter] = useState<number>(0);
   const [isJiggling, setIsJiggling] = useState<boolean>(false);
 
-  // Background sensor jitter generator (±0.0005 kg subtle sensor noise)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (baseLoad <= 0.005) {
-        setSimulatedJitter(0);
-        return;
-      }
-      if (isJiggling) {
-        // High vibration / moving load
-        const heavyJitter = (Math.random() - 0.5) * 0.040;
-        setSimulatedJitter(heavyJitter);
+  // Realistic load placement: dynamic oscillation and rise curve (~1.2s fluctuation + ~1.0s settle = ~2.2s total Orange phase)
+  const baseLoadRef = useRef<number>(0.000);
+  const targetLoadRef = useRef<number>(0.000);
+  const rafRef = useRef<number | null>(null);
+
+  const cancelLoadAnimation = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
+
+  const applyLoad = useCallback((value: number) => {
+    baseLoadRef.current = value;
+    setBaseLoad(value);
+  }, []);
+
+  const placeLoad = useCallback((rawTarget: number) => {
+    cancelLoadAnimation();
+
+    const target = Math.max(0, Number(rawTarget.toFixed(3)));
+    targetLoadRef.current = target;
+
+    // Lifting the item off: drop to zero immediately
+    if (target <= 0.005) {
+      applyLoad(0);
+      return;
+    }
+
+    const maxCap = 5.000;
+    let from = baseLoadRef.current;
+    let delta = target - from;
+
+    // Jika pengguna mengklik tombol beban yang sama untuk menguji ulang,
+    // buat kejutan dinamis (drop sebentar & rebound) seakan barang diangkat lalu ditaruh ulang
+    if (Math.abs(delta) < 0.005) {
+      from = Math.max(0, target - 0.120);
+      delta = target - from;
+    }
+
+    // Durasi pergerakan & getaran beban di atas tatakan timbangan (~1200ms)
+    // Ditambah durasi verifikasi sensor useScaleEngine (~1000ms) = total ~2.2 detik (Orange -> Hijau)
+    const animationDurationMs = 1200;
+    const start = performance.now();
+
+    // Amplitudo fluktuasi sensor saat barang ditaruh (antara 15g s/d 45g)
+    const amplitude = Math.max(0.015, Math.min(0.045, Math.abs(delta) * 0.15));
+
+    const step = (now: number) => {
+      const elapsed = now - start;
+
+      if (elapsed < animationDurationMs) {
+        const p = elapsed / animationDurationMs;
+        // Kurva menanjak dinamis (ease-out)
+        const base = from + delta * (1 - Math.pow(1 - p, 2.6));
+        // Fluktuasi sensor naik-turun yang meredam
+        const fluctuation = amplitude * Math.sin(p * Math.PI * 5) * Math.pow(1 - p, 1.8);
+
+        let value = base + fluctuation;
+        // Jika target beban normal, pastikan tidak melewati batas maksimal saat berayun
+        if (target <= maxCap) {
+          value = Math.min(value, maxCap);
+        }
+        value = Math.max(0, value);
+
+        applyLoad(Number(value.toFixed(4)));
+        rafRef.current = requestAnimationFrame(step);
       } else {
-        // Subtle natural sensor noise
-        const tinyJitter = (Math.random() - 0.5) * 0.0008;
-        setSimulatedJitter(tinyJitter);
+        // Fase fluktuasi selesai: kunci tepat di target beban
+        applyLoad(target);
+        rafRef.current = null;
       }
-    }, 120);
+    };
+
+    rafRef.current = requestAnimationFrame(step);
+  }, [applyLoad, cancelLoadAnimation]);
+
+  const addLoad = useCallback((amount: number) => {
+    placeLoad(targetLoadRef.current + amount);
+  }, [placeLoad]);
+
+  useEffect(() => cancelLoadAnimation, [cancelLoadAnimation]);
+
+
+  // Sensor jitter: only applies high vibration when user clicks "Goyang Sensor" (isJiggling)
+  useEffect(() => {
+    if (!isJiggling) {
+      setSimulatedJitter(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      const heavyJitter = (Math.random() - 0.5) * 0.040;
+      setSimulatedJitter(heavyJitter);
+    }, 100);
 
     return () => clearInterval(interval);
-  }, [baseLoad, isJiggling]);
+  }, [isJiggling]);
 
   // Current Raw Sensor Weight (combines base load and jitter)
   const rawSensorWeight = baseLoad > 0.005 ? Math.max(0, baseLoad + simulatedJitter) : 0;
@@ -69,7 +173,7 @@ export default function WeighingStationPage() {
     maxCapacityKg: 5.000,
     minWeightTriggerKg: 0.010, // mulai membaca dari 10 gram
     stabilityToleranceKg: 0.001, // ±10mg / 1g
-    stabilityDurationMs: 1200,   // 1.2 detik konstan
+    stabilityDurationMs: 1000,   // 1.0 detik stabilisasi konstan setelah getaran beban mereda (~2.2s total Orange phase)
     soundEnabled
   });
 
@@ -141,9 +245,9 @@ export default function WeighingStationPage() {
               isZero={isZero}
               stabilityProgress={stabilityProgress}
               soundEnabled={soundEnabled}
-              onToggleSound={() => setSoundEnabled(!soundEnabled)}
-              onSimulateWeight={(weight) => setBaseLoad(weight)}
-              onAddWeight={(amount) => setBaseLoad(prev => Math.max(0, Number((prev + amount).toFixed(3))))}
+              onToggleSound={handleToggleSound}
+              onSimulateWeight={placeLoad}
+              onAddWeight={addLoad}
               onJiggle={triggerJiggle}
               onZero={handleZero}
               onTare={handleTare}
