@@ -45,14 +45,14 @@ export function BatchMetadata() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-11 h-11 rounded-xl bg-blue-600 text-white font-extrabold text-base flex items-center justify-center shadow-xs">
-              R
+              D
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-gray-900 text-sm">Razka</span>
-              <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">OP-01</span>
+              <span className="font-extrabold text-gray-900 text-sm">Operator Dummy</span>
+              <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">DEMO</span>
             </div>
             <div className="text-[11px] text-gray-500 mt-0.5">
               <span>Kasir & Operator Timbang</span>
