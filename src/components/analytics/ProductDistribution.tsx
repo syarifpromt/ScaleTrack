@@ -65,15 +65,19 @@ const distributionByPeriod: Record<TimePeriod, {
   },
 };
 
+import { useTransactions } from '@/lib/transactions-store';
+import { computeProductDistribution } from '@/lib/transactions-analytics';
+
 interface ProductDistributionProps {
   period?: TimePeriod;
 }
 
 export function ProductDistribution({ period = 'today' }: ProductDistributionProps) {
+  const { transactions } = useTransactions();
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [hoveredName, setHoveredName] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
-  const current = distributionByPeriod[period] || distributionByPeriod.today;
+  const current = computeProductDistribution(transactions, period);
 
   // Trigger clockwise circular sweep animation on mount and whenever period changes
   useEffect(() => {
@@ -224,7 +228,16 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
           "absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center px-2",
           isInitialLoad && "center-smooth-reveal"
         )}>
-          {selectedItem ? (
+          {current.items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">
+                DATA KOSONG
+              </span>
+              <span className="text-xs font-semibold text-gray-400">
+                0 Transaksi
+              </span>
+            </div>
+          ) : selectedItem ? (
             <div className="flex flex-col items-center justify-center transition-all duration-300">
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">
                 KOMPOSISI
@@ -260,7 +273,12 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
 
       {/* Interactive Legend List */}
       <div className="mt-4 flex flex-col gap-1.5">
-        {current.items.map((item, idx) => {
+        {current.items.length === 0 ? (
+          <div className="py-4 text-center text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            Belum ada produk yang ditimbang pada periode ini
+          </div>
+        ) : (
+          current.items.map((item, idx) => {
           const isSelected = selectedName === item.name;
           return (
             <button
@@ -294,7 +312,8 @@ export function ProductDistribution({ period = 'today' }: ProductDistributionPro
               </div>
             </button>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );

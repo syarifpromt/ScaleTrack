@@ -163,55 +163,7 @@ export function LiveWeightDisplay() {
 
       {/* Compact Clean Screen Display */}
       <div className="p-5 flex-1 flex flex-col justify-center items-center">
-        <div className={clsx(
-          "w-full rounded-2xl p-5 sm:p-6 flex flex-col items-center justify-center transition-all duration-300 border shadow-2xs",
-          isOverload
-            ? "bg-rose-50/80 border-rose-300 ring-2 ring-rose-400/30"
-            : isStable
-            ? "bg-emerald-50/40 border-emerald-300 ring-2 ring-emerald-400/30"
-            : isWeighing
-            ? "bg-amber-50/60 border-amber-300 ring-2 ring-amber-400/30"
-            : "bg-slate-50/80 border-slate-200/90"
-        )}>
-          {/* Status Badge: Locked height h-8 */}
-          <div className="h-8 flex items-center mb-1">
-            <div className={clsx(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200",
-              isOverload
-                ? "bg-rose-100 text-rose-700 border border-rose-200"
-                : isStable
-                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                : isWeighing
-                ? "bg-amber-100 text-amber-900 border border-amber-300 animate-pulse"
-                : "bg-gray-100 text-gray-500"
-            )}>
-              {isOverload ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  <span>⚠ Kelebihan Beban (&gt; 5 kg)</span>
-                </>
-              ) : isStable ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>✓ Selesai Menimbang</span>
-                </>
-              ) : isWeighing ? (
-                <>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                  </span>
-                  <span>Sedang Menimbang...</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-gray-400" />
-                  <span>Standby</span>
-                </>
-              )}
-            </div>
-          </div>
-
+        <div className="w-full rounded-2xl p-5 sm:p-6 flex flex-col items-center justify-center border border-slate-200/90 bg-slate-50/80 shadow-2xs">
           {/* Big Digital Weight Number: Locked height h-[72px] sm:h-[80px] */}
           <div className="h-[72px] sm:h-[80px] flex items-center justify-center my-1">
             <div className="flex items-baseline gap-2">
@@ -219,7 +171,7 @@ export function LiveWeightDisplay() {
                 "font-black transition-colors duration-200",
                 isOverload
                   ? "text-4xl sm:text-5xl font-black tracking-normal text-rose-600 whitespace-nowrap"
-                  : "text-5xl sm:text-6xl font-mono tracking-tight tabular-nums",
+                  : "text-5xl sm:text-6xl font-sans font-black tracking-tight tabular-nums",
                 !isOverload && (
                   isStable
                     ? "text-emerald-600"
@@ -237,6 +189,36 @@ export function LiveWeightDisplay() {
                 )}>
                   {adaptiveWeight.unit}
                 </span>
+              )}
+            </div>
+          </div>
+
+          {/* Status Badge: Locked height h-8 placed below the weight number */}
+          <div className="h-8 flex items-center mt-1">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-gray-200 shadow-2xs">
+              {isOverload ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <span className="text-rose-600">⚠ Kelebihan Beban (&gt; 5 kg)</span>
+                </>
+              ) : isStable ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-emerald-700">Selesai Menimbang</span>
+                </>
+              ) : isWeighing ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  <span className="text-amber-600">Sedang Menimbang...</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-gray-400" />
+                  <span className="text-gray-600">Standby</span>
+                </>
               )}
             </div>
           </div>

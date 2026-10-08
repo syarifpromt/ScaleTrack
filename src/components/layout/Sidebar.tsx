@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Scale, FileText, BarChart3, HelpCircle, CheckCircle } from 'lucide-react';
+import { LayoutDashboard, Scale, FileText, BarChart3, HelpCircle, CheckCircle, Settings } from 'lucide-react';
 import { Logo } from './Logo';
 import clsx from 'clsx';
 
@@ -11,6 +11,7 @@ const navItems = [
   { name: 'Menu Utama', href: '/', icon: LayoutDashboard },
   { name: 'Stasiun Timbang', href: '/weighing', icon: Scale },
   { name: 'Statistik & Riwayat', href: '/history', icon: BarChart3 },
+  { name: 'Pengaturan', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {

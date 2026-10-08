@@ -5,6 +5,7 @@ import './globals.css';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { ClientExtensionCleanup } from '@/components/common/ClientExtensionCleanup';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -33,29 +34,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var origSet = Element.prototype.setAttribute;
-                  Element.prototype.setAttribute = function(name, value) {
-                    if (name === 'bis_skin_checked') return;
-                    return origSet.apply(this, arguments);
-                  };
-                  if (typeof document !== 'undefined') {
-                    document.querySelectorAll('[bis_skin_checked]').forEach(function(el) {
-                      el.removeAttribute('bis_skin_checked');
-                    });
-                  }
-                } catch(e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
       <body suppressHydrationWarning className="bg-[#f8f9fc] text-gray-900 font-sans antialiased selection:bg-blue-200">
+        <ClientExtensionCleanup />
         <div className="hidden lg:block">
           <Sidebar />
         </div>

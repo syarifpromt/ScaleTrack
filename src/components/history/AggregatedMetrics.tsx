@@ -3,64 +3,20 @@
 import React from 'react';
 import { Receipt, Package, DollarSign } from 'lucide-react';
 import { TimePeriod } from '@/app/history/page';
+import { useTransactions } from '@/lib/transactions-store';
+import { computeAggregatedMetrics } from '@/lib/transactions-analytics';
 
 function formatRupiah(amount: number): string {
   return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
 }
-
-const metricsByPeriod: Record<TimePeriod, {
-  totalTransactions: number;
-  totalWeightKg: number;
-  avgWeightPerTx: number;
-  totalOmset: number;
-  txSubtitle: string;
-  weightSubtitle: string;
-  omsetSubtitle: string;
-}> = {
-  today: {
-    totalTransactions: 142,
-    totalWeightKg: 184.65,
-    avgWeightPerTx: 1.30,
-    totalOmset: 28450000,
-    txSubtitle: 'Semua penimbangan tercatat realtime',
-    weightSubtitle: 'Rata-rata 1.30 kg / penimbangan',
-    omsetSubtitle: '↗ +8.4% akumulasi hari ini',
-  },
-  week: {
-    totalTransactions: 1048,
-    totalWeightKg: 1703.00,
-    avgWeightPerTx: 1.62,
-    totalOmset: 195200000,
-    txSubtitle: '7 hari operasional berjalan',
-    weightSubtitle: 'Rata-rata 243.28 kg / hari',
-    omsetSubtitle: '↗ +12.3% vs minggu lalu',
-  },
-  month: {
-    totalTransactions: 4620,
-    totalWeightKg: 7410.50,
-    avgWeightPerTx: 1.60,
-    totalOmset: 842600000,
-    txSubtitle: 'Akumulasi 30 hari berjalan',
-    weightSubtitle: 'Rata-rata 247.01 kg / hari',
-    omsetSubtitle: '↗ +15.8% vs bulan lalu',
-  },
-  year: {
-    totalTransactions: 54890,
-    totalWeightKg: 88940.00,
-    avgWeightPerTx: 1.62,
-    totalOmset: 10150000000,
-    txSubtitle: 'Akumulasi tahun berjalan 2026',
-    weightSubtitle: 'Rata-rata 7.411 kg / bulan',
-    omsetSubtitle: '↗ +24.1% vs tahun sebelumnya',
-  },
-};
 
 interface AggregatedMetricsProps {
   period?: TimePeriod;
 }
 
 export const AggregatedMetrics = ({ period = 'today' }: AggregatedMetricsProps) => {
-  const current = metricsByPeriod[period] || metricsByPeriod.today;
+  const { transactions } = useTransactions();
+  const current = computeAggregatedMetrics(transactions, period);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1791264407186",
+    "name": "Tepung",
+    "pricePerKg": 8000,
+    "category": "Sembako"
+  },
+  {
+    "id": "1791264374319",
+    "name": "Gula Putih",
+    "pricePerKg": 10000,
+    "category": "Sembako"
+  }
+]

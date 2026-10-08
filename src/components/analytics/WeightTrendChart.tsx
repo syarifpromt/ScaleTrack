@@ -18,6 +18,8 @@ import {
 import { BarChart3, TrendingUp, ZoomIn, X, Sparkles, DollarSign, Package, ArrowUpRight, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TimePeriod } from '@/app/history/page';
+import { useTransactions } from '@/lib/transactions-store';
+import { getDynamicTrendConfig } from '@/lib/transactions-analytics';
 
 interface PeriodChartItem {
   label: string;
@@ -129,11 +131,12 @@ interface WeightTrendChartProps {
 }
 
 export function WeightTrendChart({ period = 'today' }: WeightTrendChartProps) {
+  const { transactions } = useTransactions();
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [selectedPoint, setSelectedPoint] = useState<PeriodChartItem | null>(null);
   const [isFullscreenZoom, setIsFullscreenZoom] = useState<boolean>(false);
 
-  const config = chartConfigByPeriod[period] || chartConfigByPeriod.today;
+  const config = getDynamicTrendConfig(transactions, period);
 
   // Est revenue based on commodity weights
   const calculateEstimatedRevenue = (item: PeriodChartItem) => {

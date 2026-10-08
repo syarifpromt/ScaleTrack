@@ -15,6 +15,8 @@ export type TimePeriod = 'today' | 'week' | 'month' | 'year';
 export default function HistoryAndAnalyticsPage() {
   const [activeTab, setActiveTab] = useState<'analytics' | 'table'>('analytics');
   const [period, setPeriod] = useState<TimePeriod>('today');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('Semua Kategori');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -149,10 +151,19 @@ export default function HistoryAndAnalyticsPage() {
       ) : (
         <div className="space-y-5">
           {/* Search & Filter Control Bar */}
-          <SearchBar />
+          <SearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            category={categoryFilter}
+            onCategoryChange={setCategoryFilter}
+          />
 
           {/* Main Table & Integrated Pagination */}
-          <WeighingTable period={period} />
+          <WeighingTable
+            period={period}
+            searchQuery={searchQuery}
+            categoryFilter={categoryFilter}
+          />
         </div>
       )}
     </div>

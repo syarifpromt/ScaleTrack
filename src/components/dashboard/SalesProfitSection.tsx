@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Package, DollarSign, Award, ShoppingBag, ChevronDown, ChevronUp, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTransactions, TransactionRecord } from '@/lib/transactions-store';
+import { filterTransactionsByPeriod } from '@/lib/transactions-analytics';
 
 export type TimePeriod = 'today' | 'week' | 'month' | 'year';
 
@@ -29,192 +31,71 @@ interface PeriodSalesData {
   products: ProductSales[];
 }
 
-const salesDataByPeriod: Record<TimePeriod, PeriodSalesData> = {
-  today: {
-    periodLabel: 'Hari Ini (5 Okt 2026)',
-    totalTransactions: 142,
-    totalWeightKg: 189.5,
-    totalRevenue: 28450000,
+function computePeriodSalesData(transactions: TransactionRecord[], period: TimePeriod): PeriodSalesData {
+  const filtered = filterTransactionsByPeriod(transactions, period);
+  const totalTransactions = filtered.length;
+  const totalWeightKg = Number(filtered.reduce((acc, c) => acc + c.weightKg, 0).toFixed(2));
+  const totalRevenue = filtered.reduce((acc, c) => acc + c.totalPrice, 0);
+
+  const map: Record<string, {
+    name: string;
+    category: string;
+    transactionsCount: number;
+    totalWeightKg: number;
+    pricePerKg: number;
+    revenue: number;
+  }> = {};
+
+  filtered.forEach(tx => {
+    if (!map[tx.productName]) {
+      map[tx.productName] = {
+        name: tx.productName,
+        category: tx.category,
+        transactionsCount: 0,
+        totalWeightKg: 0,
+        pricePerKg: tx.pricePerKg,
+        revenue: 0,
+      };
+    }
+    map[tx.productName].transactionsCount += 1;
+    map[tx.productName].totalWeightKg += tx.weightKg;
+    map[tx.productName].revenue += tx.totalPrice;
+  });
+
+  const productsList = Object.values(map)
+    .sort((a, b) => b.revenue - a.revenue)
+    .map(p => ({
+      ...p,
+      totalWeightKg: Number(p.totalWeightKg.toFixed(2)),
+    }));
+
+  const topProduct = productsList[0] || {
+    name: totalTransactions === 0 ? 'Belum Ada Transaksi' : '-',
+    totalWeightKg: 0,
+    revenue: 0,
+  };
+
+  const labels: Record<TimePeriod, string> = {
+    today: 'Hari Ini',
+    week: 'Minggu Ini (7 Hari Terakhir)',
+    month: 'Bulan Ini (30 Hari Terakhir)',
+    year: 'Tahun Berjalan 2026',
+  };
+
+  return {
+    periodLabel: labels[period],
+    totalTransactions,
+    totalWeightKg,
+    totalRevenue,
     topProduct: {
-      name: 'Beras Premium',
-      weightKg: 85.0,
-      revenue: 1402500,
+      name: topProduct.name,
+      weightKg: topProduct.totalWeightKg || 0,
+      revenue: topProduct.revenue || 0,
     },
-    trendRevenue: '+8.4% vs kemarin',
-    products: [
-      {
-        name: 'Beras Premium',
-        category: 'Sembako',
-        transactionsCount: 54,
-        totalWeightKg: 85.0,
-        pricePerKg: 16500,
-        revenue: 1402500,
-      },
-      {
-        name: 'Daging Sapi Segar',
-        category: 'Daging',
-        transactionsCount: 32,
-        totalWeightKg: 45.0,
-        pricePerKg: 135000,
-        revenue: 6075000,
-      },
-      {
-        name: 'Telur Ayam Ras',
-        category: 'Pangan',
-        transactionsCount: 28,
-        totalWeightKg: 35.5,
-        pricePerKg: 29000,
-        revenue: 1029500,
-      },
-      {
-        name: 'Gula Pasir Kristal',
-        category: 'Sembako',
-        transactionsCount: 28,
-        totalWeightKg: 24.0,
-        pricePerKg: 17500,
-        revenue: 420000,
-      },
-    ],
-  },
-  week: {
-    periodLabel: 'Minggu Ini (29 Sep - 5 Okt)',
-    totalTransactions: 890,
-    totalWeightKg: 1450.0,
-    totalRevenue: 198500000,
-    topProduct: {
-      name: 'Beras Premium',
-      weightKg: 620.0,
-      revenue: 10230000,
-    },
-    trendRevenue: '+14.1% vs minggu lalu',
-    products: [
-      {
-        name: 'Beras Premium',
-        category: 'Sembako',
-        transactionsCount: 336,
-        totalWeightKg: 620.0,
-        pricePerKg: 16500,
-        revenue: 10230000,
-      },
-      {
-        name: 'Daging Sapi Segar',
-        category: 'Daging',
-        transactionsCount: 215,
-        totalWeightKg: 310.0,
-        pricePerKg: 135000,
-        revenue: 41850000,
-      },
-      {
-        name: 'Telur Ayam Ras',
-        category: 'Pangan',
-        transactionsCount: 180,
-        totalWeightKg: 280.0,
-        pricePerKg: 29000,
-        revenue: 8120000,
-      },
-      {
-        name: 'Gula Pasir Kristal',
-        category: 'Sembako',
-        transactionsCount: 159,
-        totalWeightKg: 240.0,
-        pricePerKg: 17500,
-        revenue: 4200000,
-      },
-    ],
-  },
-  month: {
-    periodLabel: 'Bulan Ini (Oktober 2026)',
-    totalTransactions: 3650,
-    totalWeightKg: 5820.0,
-    totalRevenue: 792400000,
-    topProduct: {
-      name: 'Beras Premium',
-      weightKg: 2450.0,
-      revenue: 40425000,
-    },
-    trendRevenue: '+19.2% vs bulan lalu',
-    products: [
-      {
-        name: 'Beras Premium',
-        category: 'Sembako',
-        transactionsCount: 1376,
-        totalWeightKg: 2450.0,
-        pricePerKg: 16500,
-        revenue: 40425000,
-      },
-      {
-        name: 'Daging Sapi Segar',
-        category: 'Daging',
-        transactionsCount: 880,
-        totalWeightKg: 1250.0,
-        pricePerKg: 135000,
-        revenue: 168750000,
-      },
-      {
-        name: 'Telur Ayam Ras',
-        category: 'Pangan',
-        transactionsCount: 744,
-        totalWeightKg: 1120.0,
-        pricePerKg: 29000,
-        revenue: 32480000,
-      },
-      {
-        name: 'Gula Pasir Kristal',
-        category: 'Sembako',
-        transactionsCount: 650,
-        totalWeightKg: 1000.0,
-        pricePerKg: 17500,
-        revenue: 17500000,
-      },
-    ],
-  },
-  year: {
-    periodLabel: 'Tahun Ini (2026)',
-    totalTransactions: 42800,
-    totalWeightKg: 69240.0,
-    totalRevenue: 9420500000,
-    topProduct: {
-      name: 'Beras Premium',
-      weightKg: 29500.0,
-      revenue: 486750000,
-    },
-    trendRevenue: '+24.6% vs tahun 2025',
-    products: [
-      {
-        name: 'Beras Premium',
-        category: 'Sembako',
-        transactionsCount: 16512,
-        totalWeightKg: 29500.0,
-        pricePerKg: 16500,
-        revenue: 486750000,
-      },
-      {
-        name: 'Daging Sapi Segar',
-        category: 'Daging',
-        transactionsCount: 10560,
-        totalWeightKg: 15200.0,
-        pricePerKg: 135000,
-        revenue: 2052000000,
-      },
-      {
-        name: 'Telur Ayam Ras',
-        category: 'Pangan',
-        transactionsCount: 8928,
-        totalWeightKg: 13540.0,
-        pricePerKg: 29000,
-        revenue: 392660000,
-      },
-      {
-        name: 'Gula Pasir Kristal',
-        category: 'Sembako',
-        transactionsCount: 6800,
-        totalWeightKg: 11000.0,
-        pricePerKg: 17500,
-        revenue: 192500000,
-      },
-    ],
-  },
-};
+    trendRevenue: totalTransactions > 0 ? `${totalTransactions} transaksi aktif` : '0 transaksi',
+    products: productsList,
+  };
+}
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -225,10 +106,11 @@ function formatRupiah(amount: number): string {
 }
 
 export function SalesProfitSection() {
+  const { transactions } = useTransactions();
   const [period, setPeriod] = useState<TimePeriod>('today');
   const [showDetailTable, setShowDetailTable] = useState<boolean>(true);
 
-  const data = salesDataByPeriod[period];
+  const data = computePeriodSalesData(transactions, period);
   const avgWeightPerTx = (data.totalWeightKg / (data.totalTransactions || 1)).toFixed(2);
 
   return (
@@ -417,51 +299,61 @@ export function SalesProfitSection() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.products.map((prod, index) => (
-                  <tr key={index} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-5 py-3.5 font-bold text-gray-900 flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[11px]">
-                        {index + 1}
-                      </span>
-                      {prod.name}
-                    </td>
-                    <td className="px-5 py-3.5 text-gray-600">
-                      <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-medium text-[11px]">
-                        {prod.category}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-mono text-gray-700">
-                      {prod.transactionsCount} kali
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-mono font-bold text-blue-700">
-                      {prod.totalWeightKg.toFixed(1)} kg
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-mono text-gray-700">
-                      {formatRupiah(prod.pricePerKg)}
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-mono font-black text-emerald-600">
-                      {formatRupiah(prod.revenue)}
+                {data.products.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
+                      Belum ada penjualan barang pada periode ini
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  data.products.map((prod, index) => (
+                    <tr key={index} className="hover:bg-gray-50/80 transition-colors">
+                      <td className="px-5 py-3.5 font-bold text-gray-900 flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[11px]">
+                          {index + 1}
+                        </span>
+                        {prod.name}
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-600">
+                        <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-medium text-[11px]">
+                          {prod.category}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-gray-700">
+                        {prod.transactionsCount} kali
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono font-bold text-blue-700">
+                        {prod.totalWeightKg.toFixed(1)} kg
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-gray-700">
+                        {formatRupiah(prod.pricePerKg)}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono font-black text-emerald-600">
+                        {formatRupiah(prod.revenue)}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
-              <tfoot>
-                <tr className="bg-slate-900 text-white font-bold">
-                  <td className="px-5 py-3.5" colSpan={2}>
-                    TOTAL ({data.products.length} Jenis Barang)
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-mono">
-                    {data.totalTransactions} kali
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-mono text-blue-300">
-                    {data.totalWeightKg.toFixed(1)} kg
-                  </td>
-                  <td className="px-5 py-3.5 text-right font-mono text-slate-400">-</td>
-                  <td className="px-5 py-3.5 text-right font-mono text-emerald-400 text-sm font-black">
-                    {formatRupiah(data.totalRevenue)}
-                  </td>
-                </tr>
-              </tfoot>
+              {data.products.length > 0 && (
+                <tfoot>
+                  <tr className="bg-slate-900 text-white font-bold">
+                    <td className="px-5 py-3.5" colSpan={2}>
+                      TOTAL ({data.products.length} Jenis Barang)
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-mono">
+                      {data.totalTransactions} kali
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-mono text-blue-300">
+                      {data.totalWeightKg.toFixed(1)} kg
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-mono text-slate-400">-</td>
+                    <td className="px-5 py-3.5 text-right font-mono text-emerald-400 text-sm font-black">
+                      {formatRupiah(data.totalRevenue)}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         )}

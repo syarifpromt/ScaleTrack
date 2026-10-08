@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Clock, User } from 'lucide-react';
+import { Clock, User, Scale, Printer } from 'lucide-react';
 import { Logo } from './Logo';
+import { useScaleConnection, usePrinterConnection } from '@/lib/device-store';
 
 export function TopBar() {
   const [time, setTime] = useState<string>('');
   const [mounted, setMounted] = useState<boolean>(false);
+  const { isScaleConnected } = useScaleConnection();
+  const { isPrinterConnected } = usePrinterConnection();
 
   useEffect(() => {
     setMounted(true);
@@ -16,7 +19,10 @@ export function TopBar() {
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
 
   return (
@@ -26,18 +32,57 @@ export function TopBar() {
         <Logo showStatus={false} />
       </div>
 
-      {/* Desktop Left: Single Device Status */}
-      <div className="hidden lg:flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+      {/* Desktop Left: Devices Status (Scale & Printer) - Read-Only Indicators */}
+      <div className="hidden lg:flex items-center gap-2.5 select-none">
+        {/* 1. Timbangan Digital */}
+        <div
+          title={`Status Timbangan Digital: ${isScaleConnected ? 'Terhubung' : 'Terputus'}`}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border shadow-2xs transition-all ${
+            isScaleConnected
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-700'
+          }`}
+        >
+          <Scale className={`w-4 h-4 ${isScaleConnected ? 'text-emerald-600' : 'text-rose-500'}`} />
+          <span className="relative flex h-2 w-2">
+            {isScaleConnected ? (
+              <>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </>
+            ) : (
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
+            )}
           </span>
-          <span className="text-xs font-semibold text-emerald-800">
-            Timbangan Digital (Online)
+          <span className="text-xs font-semibold">
+            {isScaleConnected ? 'Terhubung' : 'Terputus'}
           </span>
         </div>
-        <span className="text-xs text-gray-400">• Kapasitas Maksimal 5 kg</span>
+
+        {/* 2. Printer Struk */}
+        <div
+          title={`Status Printer Struk: ${isPrinterConnected ? 'Terhubung' : 'Terputus'}`}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border shadow-2xs transition-all ${
+            isPrinterConnected
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-700'
+          }`}
+        >
+          <Printer className={`w-4 h-4 ${isPrinterConnected ? 'text-emerald-600' : 'text-rose-500'}`} />
+          <span className="relative flex h-2 w-2">
+            {isPrinterConnected ? (
+              <>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </>
+            ) : (
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
+            )}
+          </span>
+          <span className="text-xs font-semibold">
+            {isPrinterConnected ? 'Terhubung' : 'Terputus'}
+          </span>
+        </div>
       </div>
 
       {/* Right: Simple Clock & Operator Profile */}
@@ -55,7 +100,7 @@ export function TopBar() {
           </div>
           <div className="hidden sm:flex flex-col text-left">
             <span className="text-xs font-semibold text-gray-800">Razka</span>
-            <span className="text-[11px] text-gray-400">Operator (Shift Pagi)</span>
+            <span className="text-[11px] text-gray-400">Operator Kasir</span>
           </div>
         </div>
       </div>

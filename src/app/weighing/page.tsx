@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ScaleDisplay } from '@/components/weighing/ScaleDisplay';
-import { ProductSelector, Product } from '@/components/weighing/ProductSelector';
+import { Product } from '@/lib/products-store';
+import { WeighingActiveProductCard } from '@/components/weighing/WeighingActiveProductCard';
 import { BatchMetadata } from '@/components/weighing/BatchMetadata';
 import { ActionButtons } from '@/components/weighing/ActionButtons';
-import { RecentWeighingsMini } from '@/components/weighing/RecentWeighingsMini';
+import { RecentWeighingsMini, WeighingRecord } from '@/components/weighing/RecentWeighingsMini';
 import { SyncBanner } from '@/components/weighing/SyncBanner';
+import { ReceiptModal, ReceiptData } from '@/components/weighing/ReceiptModal';
 import { useScaleEngine } from '@/hooks/useScaleEngine';
 import { unlockScaleAudio, playStableSound } from '@/lib/scale-sounds';
 
@@ -17,10 +19,25 @@ const initialSelectedProduct: Product = {
   category: 'Sembako',
 };
 
+import { saveTransaction, useTransactions } from '@/lib/transactions-store';
+import { useScaleConnection } from '@/lib/device-store';
+import { supabase } from '@/lib/supabase';
+
 export default function WeighingStationPage() {
+  const { isScaleConnected } = useScaleConnection();
+  const { transactions } = useTransactions();
   const [showSync, setShowSync] = useState(false);
-  const [syncId, setSyncId] = useState(142);
+  const [syncId, setSyncId] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Live Recent Weighings (Synchronized with real transactions)
+  const recentRecords: WeighingRecord[] = transactions.slice(0, 5).map((t, idx) => ({
+    id: idx + 1,
+    time: t.time.includes(',') ? t.time.split(',')[1].trim() : t.time,
+    weight: t.weightKg,
+    isPass: t.status !== 'rejected',
+    productName: t.productName,
+  }));
 
   // Browsers block audio until the user interacts with the page once.
   // Unlock it on the first click / key press so automatic alerts can play.
@@ -154,8 +171,74 @@ export default function WeighingStationPage() {
     return () => clearInterval(interval);
   }, [isJiggling]);
 
-  // Current Raw Sensor Weight (combines base load and jitter)
-  const rawSensorWeight = baseLoad > 0.005 ? Math.max(0, baseLoad + simulatedJitter) : 0;
+  // Current Raw Sensor Weight (combines base load and jitter, 0 if scale disconnected)
+  const rawSensorWeight = isScaleConnected && baseLoad > 0.005 ? Math.max(0, baseLoad + simulatedJitter) : 0;
+
+  // Live ESP32 Sensor Reading Listener (Polling /api/scale/reading)
+  const [isEspLive, setIsEspLive] = useState<boolean>(false);
+  const [espDeviceName, setEspDeviceName] = useState<string>('ESP32 Simulasi (HX711)');
+  const lastEspTimestampRef = useRef<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/scale/reading', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+
+        setIsEspLive(Boolean(data.isLive));
+        if (data.device) {
+          setEspDeviceName(data.device);
+        }
+
+        // If active signal with fresh timestamp arrived from ESP32
+        if (data.isLive && data.timestamp > lastEspTimestampRef.current) {
+          lastEspTimestampRef.current = data.timestamp;
+          cancelLoadAnimation();
+          applyLoad(Number(data.weightKg));
+        }
+      } catch {
+        // Ignore network hiccups
+      }
+    }, 400);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [applyLoad, cancelLoadAnimation]);
+
+  // Supabase Realtime WebSocket Listener (Zero-latency push stream dari Cloud)
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return;
+
+    const channel = supabase
+      .channel('supabase_realtime_scale')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'live_weights',
+        },
+        (payload) => {
+          const row = payload.new as { weight?: number; is_stable?: boolean; updated_at?: string };
+          if (row && typeof row.weight === 'number') {
+            cancelLoadAnimation();
+            applyLoad(Number(row.weight));
+            setIsEspLive(true);
+            setEspDeviceName('ESP32 IoT Load Cell (Supabase Cloud)');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [applyLoad, cancelLoadAnimation]);
 
   // Scale Engine Hook (5.000 kg capacity, 10mg stability threshold, 1.2s stability time)
   const {
@@ -177,29 +260,91 @@ export default function WeighingStationPage() {
     soundEnabled
   });
 
-  // Action: Save Weighing (Manual Trigger)
-  const handleSave = useCallback(() => {
-    if (isOverload || isZero || !isStable) {
+  // Receipt Modal State
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+
+  // Action: Selesai Menimbang (Buka Struk Transaksi)
+  const handleComplete = useCallback(() => {
+    if (!isScaleConnected || isOverload || isZero || !isStable) {
       return;
     }
+
+    const calculatedTotal = Math.round(netWeight * (selectedProduct.pricePerKg || 0));
+    const now = new Date();
+    const formattedDate = new Intl.DateTimeFormat('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(now) + ' WIB';
+
+    const newReceipt: ReceiptData = {
+      id: `TRX-${Date.now().toString().slice(-6)}`,
+      time: formattedDate,
+      productName: selectedProduct.name,
+      category: selectedProduct.category,
+      weightKg: Number(netWeight.toFixed(3)),
+      pricePerKg: selectedProduct.pricePerKg || 0,
+      totalPrice: calculatedTotal,
+      operator: 'Razka',
+      deviceName: 'Timbangan Utama (SCALE-001)',
+    };
+
+    const shortTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} WIB`;
+    const newRecord: WeighingRecord = {
+      id: Number(Date.now().toString().slice(-4)),
+      time: shortTime,
+      weight: Number(netWeight.toFixed(3)),
+      isPass: true,
+      productName: selectedProduct.name,
+    };
+
+    setReceiptData(newReceipt);
+    setIsReceiptOpen(true);
     setSyncId(prev => prev + 1);
     setShowSync(true);
+
+    // Simpan permanen ke database REST API
+    saveTransaction({
+      id: newReceipt.id,
+      timestamp: now.toISOString(),
+      time: formattedDate,
+      productName: newReceipt.productName,
+      category: newReceipt.category,
+      weightKg: newReceipt.weightKg,
+      pricePerKg: newReceipt.pricePerKg,
+      totalPrice: newReceipt.totalPrice,
+      operator: newReceipt.operator,
+      deviceName: newReceipt.deviceName,
+      status: 'accepted',
+    });
 
     setTimeout(() => {
       setShowSync(false);
     }, 3500);
-  }, [isOverload, isZero, isStable]);
+  }, [isOverload, isZero, isStable, netWeight, selectedProduct]);
 
-  // Keyboard Shortcuts: SPACE/F9 (Save), T (Tare), Z (Zero)
+  // Transaksi Baru: reset beban timbangan
+  const handleNewTransaction = useCallback(() => {
+    placeLoad(0);
+    setIsReceiptOpen(false);
+  }, [placeLoad]);
+
+  // Keyboard Shortcuts: SPACE/Enter/F9 (Selesai), T (Tare), Z (Zero)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         return;
       }
 
-      if (e.key === ' ' || e.key === 'F9') {
+      if (!isScaleConnected) return;
+
+      if (e.key === ' ' || e.key === 'F9' || e.key === 'Enter') {
         e.preventDefault();
-        handleSave();
+        handleComplete();
       } else if (e.key === 't' || e.key === 'T') {
         e.preventDefault();
         handleTare();
@@ -211,7 +356,7 @@ export default function WeighingStationPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, handleTare, handleZero]);
+  }, [handleComplete, handleTare, handleZero, isScaleConnected]);
 
   // Simulate shaking scale
   const triggerJiggle = () => {
@@ -245,34 +390,46 @@ export default function WeighingStationPage() {
               isZero={isZero}
               stabilityProgress={stabilityProgress}
               soundEnabled={soundEnabled}
+              isConnected={isScaleConnected}
               onToggleSound={handleToggleSound}
               onSimulateWeight={placeLoad}
               onAddWeight={addLoad}
               onJiggle={triggerJiggle}
               onZero={handleZero}
               onTare={handleTare}
+              isEspLive={isEspLive}
+              espDeviceName={espDeviceName}
             />
 
             <ActionButtons 
-              onSave={handleSave} 
-              onTare={handleTare}
-              onZero={handleZero}
+              onComplete={handleComplete} 
               isStable={isStable}
               isOverload={isOverload}
               isZero={isZero}
+              isWeighing={!isZero && !isStable && !isOverload}
+              isConnected={isScaleConnected}
             />
 
-            <RecentWeighingsMini />
+            <RecentWeighingsMini records={recentRecords} />
           </div>
 
-          {/* Right Column: SKU Selector & Metadata (5 cols) */}
+          {/* Right Column: Active Product Card & Operator Session Info (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-4">
-            <ProductSelector 
+            <WeighingActiveProductCard 
+              selectedProduct={selectedProduct}
               onSelectProduct={(p) => setSelectedProduct(p)}
             />
             <BatchMetadata />
           </div>
         </div>
+
+        {/* Modal Struk Transaksi */}
+        <ReceiptModal 
+          isOpen={isReceiptOpen}
+          onClose={() => setIsReceiptOpen(false)}
+          receiptData={receiptData}
+          onNewTransaction={handleNewTransaction}
+        />
       </div>
     </div>
   );
