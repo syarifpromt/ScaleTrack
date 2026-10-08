@@ -3,13 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Scale, FileText, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Scale, BarChart3, Settings } from 'lucide-react';
 import clsx from 'clsx';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Timbang', href: '/weighing', icon: Scale },
   { name: 'Statistik', href: '/history', icon: BarChart3 },
+  { name: 'Pengaturan', href: '/settings', icon: Settings },
 ];
 
 export function BottomNav() {

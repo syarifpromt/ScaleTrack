@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Clock, User, Scale, Printer } from 'lucide-react';
+import Link from 'next/link';
+import { Clock, User, Scale, Printer, Settings } from 'lucide-react';
 import { Logo } from './Logo';
 import { useScaleConnection, usePrinterConnection } from '@/lib/device-store';
 
@@ -103,6 +104,15 @@ export function TopBar() {
             <span className="text-[11px] text-gray-400">Operator Kasir</span>
           </div>
         </div>
+
+        {/* Mobile Settings Shortcut Link */}
+        <Link
+          href="/settings"
+          className="lg:hidden flex items-center justify-center h-8 w-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+          title="Pengaturan"
+        >
+          <Settings className="w-4 h-4" />
+        </Link>
       </div>
     </header>
   );
