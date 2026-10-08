@@ -43,7 +43,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: 2.5,
-    operator: 'Razka (OP-01)',
+    operator: 'Operator Dummy 1',
     created_at: '2026-10-05T08:32:15Z',
     device: devices[0],
     product: products[0]
@@ -58,7 +58,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: -0.5,
-    operator: 'Tama (OP-02)',
+    operator: 'Operator Dummy 2',
     created_at: '2026-10-05T08:29:40Z',
     device: devices[0],
     product: products[0]
@@ -73,7 +73,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: 1.5,
-    operator: 'Haikal (OP-03)',
+    operator: 'Operator Dummy 3',
     created_at: '2026-10-05T08:15:10Z',
     device: devices[0],
     product: products[1]
@@ -88,7 +88,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: 1.0,
-    operator: 'Razka (OP-01)',
+    operator: 'Operator Dummy 1',
     created_at: '2026-10-05T07:55:22Z',
     device: devices[0],
     product: products[2]
@@ -103,7 +103,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'warning',
     deviation: -5.0,
-    operator: 'Tama (OP-02)',
+    operator: 'Operator Dummy 2',
     created_at: '2026-10-05T07:42:05Z',
     device: devices[1],
     product: products[4]
@@ -118,7 +118,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: 0.8,
-    operator: 'Haikal (OP-03)',
+    operator: 'Operator Dummy 3',
     created_at: '2026-10-05T07:30:18Z',
     device: devices[0],
     product: products[3]
@@ -133,7 +133,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: 2.0,
-    operator: 'Razka (OP-01)',
+    operator: 'Operator Dummy 1',
     created_at: '2026-10-05T07:18:45Z',
     device: devices[0],
     product: products[5]
@@ -148,7 +148,7 @@ export const weighings: Weighing[] = [
     unit: 'kg',
     status: 'accepted',
     deviation: -1.0,
-    operator: 'Tama (OP-02)',
+    operator: 'Operator Dummy 2',
     created_at: '2026-10-05T07:05:01Z',
     device: devices[0],
     product: products[6]

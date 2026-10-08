@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       weightKg: Number(weightKg),
       pricePerKg: Number(pricePerKg || 0),
       totalPrice: Number(totalPrice || 0),
-      operator: operator || 'Razka (OP-01)',
+      operator: operator || 'Operator Dummy',
       deviceName: deviceName || 'Timbangan Utama (SCALE-001)',
       status,
     };

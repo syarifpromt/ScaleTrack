@@ -289,7 +289,7 @@ export default function WeighingStationPage() {
       weightKg: Number(netWeight.toFixed(3)),
       pricePerKg: selectedProduct.pricePerKg || 0,
       totalPrice: calculatedTotal,
-      operator: 'Razka',
+      operator: 'Operator Dummy',
       deviceName: 'Timbangan Utama (SCALE-001)',
     };
 
